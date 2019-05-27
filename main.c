@@ -44,7 +44,12 @@
 
 /**
   Section: Included Files
+ * 
+ * 
 */
+
+
+
 #include "mcc_generated_files/system.h"
 
 #include "mcc_generated_files/pin_manager.h"
@@ -52,6 +57,7 @@
 #include "stdbool.h"
 
 #include "process.h"
+#include "i2c.h"
 
 /*
                          Main application
@@ -61,6 +67,9 @@ int main(void)
     static uint8_t timecnt = 0;
     // initialize the device
     SYSTEM_Initialize();
+    
+    i2c_Init();
+    sh1106_Init();
 
     while (1)
     {
