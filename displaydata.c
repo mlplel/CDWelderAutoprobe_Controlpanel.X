@@ -1,0 +1,31 @@
+/**
+ * displaydata.c
+
+  @Company
+    
+
+  @File Name
+ displaydata.c
+
+  @Summary
+ * display data
+
+  @Description
+    display data.
+    
+*/
+
+#include "displaydata.h"
+
+
+
+const uint8_t sym_blank[] = {
+    1,
+    0x00,
+};
+
+const uint8_t sym_P1set[] = {
+    20,
+    0x7F, 0x09, 0x09, 0x07, 0x00, 0x02, 0x01, 0x7F, 0x00, 0x5C, 0x54, 0x74,
+    0x00, 0x7C, 0x54, 0x5C, 0x00, 0x08, 0x7C, 0x08,
+};

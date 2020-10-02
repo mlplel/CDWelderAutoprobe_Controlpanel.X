@@ -18,6 +18,10 @@
       <itemPath>input.h</itemPath>
       <itemPath>process.h</itemPath>
       <itemPath>i2c.h</itemPath>
+      <itemPath>spi.h</itemPath>
+      <itemPath>messages.h</itemPath>
+      <itemPath>displaydata.h</itemPath>
+      <itemPath>maincharset.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -41,6 +45,10 @@
       <itemPath>input.c</itemPath>
       <itemPath>process.c</itemPath>
       <itemPath>i2c.c</itemPath>
+      <itemPath>spi.c</itemPath>
+      <itemPath>messages.c</itemPath>
+      <itemPath>displaydata.c</itemPath>
+      <itemPath>maincharset.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -59,12 +67,14 @@
         <targetPluginBoard></targetPluginBoard>
         <platformTool>ICD3PlatformTool</platformTool>
         <languageToolchain>XC16</languageToolchain>
-        <languageToolchainVersion>1.36</languageToolchainVersion>
+        <languageToolchainVersion>1.60</languageToolchainVersion>
         <platform>2</platform>
       </toolsSet>
       <packs>
-        <pack name="PIC24F-GA-GB_DFP" vendor="Microchip" version="1.0.58"/>
+        <pack name="PIC24F-GA-GB_DFP" vendor="Microchip" version="1.1.74"/>
       </packs>
+      <ScriptingSettings>
+      </ScriptingSettings>
       <compileType>
         <linkerTool>
           <linkerLibItems>
@@ -151,6 +161,9 @@
         <property key="relax" value="false"/>
         <property key="warning-level" value="emit-warnings"/>
       </C30-AS>
+      <C30-CO>
+        <property key="coverage-enable" value=""/>
+      </C30-CO>
       <C30-LD>
         <property key="additional-options-use-response-files" value="false"/>
         <property key="boot-eeprom" value="no_eeprom"/>
@@ -251,7 +264,6 @@
         <property key="UART 1" value="true"/>
         <property key="UART 2" value="true"/>
         <property key="debugoptions.useswbreakpoints" value="false"/>
-        <property key="firmware.download.all" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="false"/>

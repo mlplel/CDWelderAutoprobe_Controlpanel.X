@@ -56,6 +56,7 @@
 /**
  Section: File specific functions
 */
+void (*C_CS_InterruptHandler)(void) = NULL;
 
 /**
  Section: Driver Interface Function Definitions
@@ -66,21 +67,21 @@ void PIN_MANAGER_Initialize (void)
      * Setting the Output Latch SFR(s)
      ***************************************************************************/
     LATA = 0x0003;
-    LATB = 0x0808;
+    LATB = 0x0828;
 
     /****************************************************************************
      * Setting the GPIO Direction SFR(s)
      ***************************************************************************/
     TRISA = 0x001C;
-    TRISB = 0xF3F3;
+    TRISB = 0xB3D3;
 
     /****************************************************************************
      * Setting the Weak Pull Up and Weak Pull Down SFR(s)
      ***************************************************************************/
     IOCPDA = 0x0000;
-    IOCPDB = 0x0000;
+    IOCPDB = 0x4000;
     IOCPUA = 0x0000;
-    IOCPUB = 0x0000;
+    IOCPUB = 0x1020;
 
     /****************************************************************************
      * Setting the Open Drain SFR(s)
@@ -96,6 +97,48 @@ void PIN_MANAGER_Initialize (void)
 
 
 
+    /****************************************************************************
+     * Interrupt On Change: negative
+     ***************************************************************************/
+    IOCNBbits.IOCNB12 = 1;    //Pin : RB12
+    /****************************************************************************
+     * Interrupt On Change: flag
+     ***************************************************************************/
+    IOCFBbits.IOCFB12 = 0;    //Pin : RB12
+    /****************************************************************************
+     * Interrupt On Change: config
+     ***************************************************************************/
+    PADCONbits.IOCON = 1;    //Config for PORTB
+
+    /****************************************************************************
+     * Interrupt On Change: Interrupt Enable
+     ***************************************************************************/
+    IFS1bits.IOCIF = 0; //Clear IOCI interrupt flag
+    IEC1bits.IOCIE = 1; //Enable IOCI interrupt
+}
+
+void C_CS_SetInterruptHandler(void (* InterruptHandler)(void))
+{ 
+    IEC1bits.IOCIE = 0; //Disable IOCI interrupt
+    C_CS_InterruptHandler = InterruptHandler; 
+    IEC1bits.IOCIE = 1; //Enable IOCI interrupt
 }
 
 
+/* Interrupt service routine for the IOCI interrupt. */
+void __attribute__ (( interrupt, no_auto_psv )) _IOCInterrupt ( void )
+{
+    if(IFS1bits.IOCIF == 1)
+    {
+        // Clear the flag
+        IFS1bits.IOCIF = 0;
+        if(IOCFBbits.IOCFB12 == 1)
+        {
+            IOCFBbits.IOCFB12 = 0;  //Clear flag for Pin - RB12
+            if(C_CS_InterruptHandler) 
+            { 
+                C_CS_InterruptHandler(); 
+            }
+        }
+    }
+}

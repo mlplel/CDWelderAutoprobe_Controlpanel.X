@@ -48,16 +48,20 @@
  * 
 */
 
-
-
 #include "mcc_generated_files/system.h"
-
 #include "mcc_generated_files/pin_manager.h"
-
+#include "libpic30.h"
 #include "stdbool.h"
-
 #include "process.h"
 #include "i2c.h"
+#include "spi.h"
+
+
+void powerUp(void);
+bool isPowerOnMsg(void);
+bool isInitMsg(void);
+void powerUpError(void);
+
 
 /*
                          Main application
@@ -70,12 +74,21 @@ int main(void)
     
     i2c_Init();
     sh1106_Init();
+    
+    spi_IOSetup();
+    spi1_Init();
+    spi2_Init();
+    
+    //powerUp();
+    
+    LED4_SetLow();
 
     while (1)
     {
         // Add your application code
          if(IFS0bits.T1IF)
         {
+             //TP3_Toggle();
             timecnt++;       
             IFS0bits.T1IF = false;
             run100us();
@@ -88,6 +101,51 @@ int main(void)
     }
 
     return 1;
+}
+
+/*
+void powerUp(){
+    
+    while(!isPowerOnMsg());
+    //while(isTxBusy() == 1);
+    setMsg(RPY_init);
+   
+    while(!isInitMsg());
+    
+    
+    //powerUpError();
+    
+}
+
+
+bool isPowerOnMsg(){
+    //TP2_Toggle();
+    if(isNewMsg()){
+        MAINMSG msg = getMsg();    
+        if((msg.command == MSG_poweron.command) && (msg.data3 == MSG_poweron.data3)){
+            return true;
+        }        
+    }
+    return false;
+}
+
+bool isInitMsg(){
+    //TP3_Toggle();
+    if(isNewMsg()){
+        MAINMSG msg = getMsg();    
+        if((msg.command == MSG_init.command) && (msg.data3 == MSG_init.data3)){
+            return true;
+        }
+    }
+    return false;
+}
+
+*/
+void powerUpError(){
+    
+    LED3_SetLow();
+    
+    
 }
 /**
  End of File

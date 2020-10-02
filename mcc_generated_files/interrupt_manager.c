@@ -52,8 +52,17 @@
 */
 void INTERRUPT_Initialize (void)
 {
-     //    MICI: I2C1 Master Events
+    //    IOCI: IOC -  Interrupt On Change Interrupt
     //    Priority: 1
-        IPC4bits.MI2C1IP = 1;
+        IPC4bits.IOCIP = 1;
+        
+        IPC8bits.SPI2IP = 4;
+        IPC8bits.SPI2TXIP = 4;        
+        IPC14bits.SPI2RXIP = 4;
+        
+        IPC2bits.SPI1IP = 5;
+        IPC2bits.SPI1TXIP = 5;
+        IPC14bits.SPI1RXIP = 5;
+        
 
 }

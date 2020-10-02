@@ -25,14 +25,29 @@ extern "C" {
         SW_DCLICKED = 4
     } SWEVENT;
 
+    typedef enum {
+        MODE_INIT = 0,
+        MODE_OPERATE = 2,
+        MODE_CAL = 10,
+
+    } PROCESSMODE;
+
     void run100us(void);
     void run1ms(void);
     void updateSwitch(void);
     SWEVENT getSwitchEvent(void);
+    SWEVENT peekswitchevent(void);
+    void clearswitchevent(void);
+    
+    void calmode_init(void);
     
     void updateEncoder(void);
-
-
+    void processMsg(void);
+    void displayupdate(void);
+    
+    
+    
+    void testheader(void);
 
 
 #ifdef	__cplusplus

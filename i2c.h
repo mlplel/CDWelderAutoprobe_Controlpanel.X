@@ -15,7 +15,7 @@ extern "C" {
 #include "mcc_generated_files/mcc.h"
 #define FCY     (_XTAL_FREQ/2)
 
-#include "stddef.h"
+#include <stddef.h>
 #include  "xc.h"
     
     typedef struct 
@@ -46,8 +46,11 @@ extern "C" {
     void sh1106_Clear(void);
 
     void sh1106_Char(uint8_t col, uint8_t line, int chr);
-    void display_Value(int16_t val);
-    void display_Line3(int16_t val);
+    void sh1106_charat(uint8_t col, uint8_t line, int chr);
+    
+    void display_int(int16_t val, uint8_t line);
+    
+    void display_header(const uint8_t* s1, const uint8_t* s2, const uint8_t* s3);
 
 
 

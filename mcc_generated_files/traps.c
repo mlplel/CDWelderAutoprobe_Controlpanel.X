@@ -47,6 +47,7 @@
 */
 #include <xc.h>
 #include "traps.h"
+#include "pin_manager.h"
 
 #define ERROR_HANDLER __attribute__((interrupt,no_auto_psv))
 #define ERROR_HANDLER_NORETURN ERROR_HANDLER __attribute__((noreturn))
@@ -69,7 +70,9 @@ void __attribute__((naked, noreturn, weak)) TRAPS_halt_on_error(uint16_t code)
     __builtin_software_breakpoint();
     /* If we are in debug mode, cause a software breakpoint in the debugger */
 #endif
-    while(1);
+    while(1){
+        TP2_Toggle();
+    };
     
 }
 

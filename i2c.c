@@ -17,7 +17,8 @@
 
 
 #include "i2c.h"
-
+#include "displaydata.h"
+#include "maincharset.h"
 #include "stdlib.h"
 #include "stdbool.h"
 #include "libpic30.h"
@@ -242,7 +243,7 @@ I2C_STATUS_MSG i2c_Ready(void){
  };
  
  const uint8_t linepos[] = {
-     0x00, 0x02, 0x04, 0x06     
+     0x00, 0x02, 0x04, 0x06, 0x00     
  }; 
  
  const uint8_t chset1[] = {
@@ -346,89 +347,169 @@ I2C_STATUS_MSG i2c_Ready(void){
    
  }
  
- void display_Value(int16_t val){
-     bool negf;
-     uint8_t pos= 6;
+ // display large char at position on display
+ void sh1106_charat(uint8_t col, uint8_t line, int chr){
+       uint8_t *pdata; 
+    if((pdata = (uint8_t *)malloc(54)) == NULL){
+        // error just return atm
+        return;
+    } 
+    
+    int charindx = chr * 20;
+    uint8_t page = linepos[line];
+    uint8_t collow = colpos[col] & 0x0F;
+    int8_t colhigh = (colpos[col] >> 4) | 0x10;
+    int i = 0;
+
+    *(pdata + i) = 0x80;
+    i++;
+    *(pdata + i) = 0xB0 + page; //select page 0 - 7
+    i++;
+    *(pdata + i) = 0x80;
+    i++;
+    *(pdata + i) = collow;
+    i++;
+    *(pdata + i) = 0x80;
+    i++;
+    *(pdata + i) = colhigh;
+    i++;
+    int j;
+    for (j = 0; j < 10; j++) {
+        *(pdata + i) = 0xC0;
+        i++;
+        *(pdata + i) = maincharset[charindx];
+        i++;
+        charindx++;
+    }
+
+    *(pdata + i) = 0x80;
+    i++;
+    *(pdata + i) = 0xB0 + page + 1; //select page 0 - 7
+    i++;
+    *(pdata + i) = 0x80;
+    i++;
+    *(pdata + i) = collow;
+    i++;
+    *(pdata + i) = 0x80;
+    i++;
+    *(pdata + i) = colhigh;
+    i++;
+    for (j = 0; j < 9; j++) {
+        *(pdata + i) = 0xC0;
+        i++;
+        *(pdata + i) = maincharset[charindx];
+        i++;
+        charindx++;
+    }
+    *(pdata + i) = 0x40;
+    i++;
+    *(pdata + i) = maincharset[charindx];
+    i++;
+    charindx++;    
+   
+    i2c_Write(pdata, i); 
      
-     if(val < 0){
-         negf = true;
-         val = (~val + 1);
-     }
-     else{
-         negf = false;
-     }
-     if(val == 0){
-         sh1106_Char(1, 1, 0);
-         sh1106_Char(2, 1, 0);
-         sh1106_Char(3, 1, 0);
-         sh1106_Char(4, 1, 0);
-         sh1106_Char(5, 1, 0);
-         sh1106_Char(6, 1, 10);         
-         return;
-     }  
-     int dig;
-     while(val != 0){
-     
-        dig = val % 10;
-        if(dig == 0)
-            dig = 10;
-        sh1106_Char(pos, 1, dig);
-         
-        val = val / 10;
-        pos--;           
-         
-     } 
-     if(negf == true){
-         sh1106_Char(pos, 1, 11);
-         pos--;
-     }     
-     for(; pos > 0 ; pos--){
-         sh1106_Char(pos, 1, 0);
-     }          
  }
  
- void display_Line3(int16_t val){
-     bool negf;
-     uint8_t pos= 6;
-     
-     if(val < 0){
-         negf = true;
-         val = (~val + 1);
-     }
-     else{
-         negf = false;
-     }
-     
-     if(val == 0){
-         sh1106_Char(1, 4, 0);
-         sh1106_Char(2, 4, 0);
-         sh1106_Char(3, 4, 0);
-         sh1106_Char(4, 4, 0);
-         sh1106_Char(5, 4, 0);
-         sh1106_Char(6, 4, 10);         
-         return;
-     }     
-   
-     int dig;
-     
-     while(val != 0){
-     
+ 
+ void display_int(int16_t val, uint8_t line) {
+    bool negf;
+    uint8_t pos = 6;
+
+    if (val < 0) {
+        negf = true;
+        val = (~val + 1);
+    } else {
+        negf = false;
+    }
+
+    if (val == 0) {
+        sh1106_Char(1, line, 0);
+        sh1106_Char(2, line, 0);
+        sh1106_Char(3, line, 0);
+        sh1106_Char(4, line, 0);
+        sh1106_Char(5, line, 0);
+        sh1106_Char(6, line, 10);
+        return;
+    }
+
+    int dig;
+
+    while (val != 0) {
+
         dig = val % 10;
-        if(dig == 0)
+        if (dig == 0)
             dig = 10;
-        sh1106_Char(pos, 4, dig);
-         
+        sh1106_Char(pos, line, dig);
+
         val = val / 10;
         pos--;
-     }         
+    }
+
+    if (negf == true) {
+        sh1106_Char(pos, line, 11);
+        pos--;
+    }
+
+    for (; pos > 0; pos--) {
+        sh1106_Char(pos, line, 0);
+    }
+}
+ 
+ 
+ void display_header(const uint8_t* s1, const uint8_t* s2, const uint8_t* s3){
+     int bufcnt = s1[0] + s2[0] + s3[0];
+     bufcnt = (bufcnt * 2) + 8;
+    uint8_t *pdata; 
+    if((pdata = (uint8_t *)malloc(bufcnt)) == NULL){
+        // error just return atm
+        return;
+    }  
+    
+    int i = 0;
+
+    *(pdata + i) = 0x80;
+    i++;
+    *(pdata + i) = 0xB2; //select page 0
+    i++;
+    *(pdata + i) = 0x80;
+    i++;
+    *(pdata + i) = 0x04;
+    i++;
+    *(pdata + i) = 0x80;
+    i++;
+    *(pdata + i) = 0x10;
+    i++;
+    
+    int j;
+    for (j = 1; j <= s1[0]; j++) {
+        *(pdata + i) = 0xC0;
+        i++;
+        *(pdata + i) = s1[j];
+        i++;
+    }
+    
+    for (j = 1; j <= s2[0]; j++) {
+        *(pdata + i) = 0xC0;
+        i++;
+        *(pdata + i) = s2[j];
+        i++;
+    }
+    
+    
+     for (j = 1; j <= s3[0]; j++) {
+        *(pdata + i) = 0xC0;
+        i++;
+        *(pdata + i) = s3[j];
+        i++;
+    }
+    
+    *(pdata + i) = 0x40;
+    i++;
+    *(pdata + i) = 0x00;
+    i++;
+    
+    i2c_Write(pdata, i);
      
-     if(negf == true){
-         sh1106_Char(pos, 4, 11);
-         pos--;
-     }
-     
-     for(; pos > 0 ; pos--){
-         sh1106_Char(pos, 4, 0);
-     }
  }
-  
+
