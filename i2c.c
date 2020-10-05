@@ -54,7 +54,7 @@ void i2c_Init(void){
     dataqueuestatus.empty = 1;
     dataqueuestatus.full = 0;
     pbuffer = NULL;
-      
+    // using RB8 and RB9  
     I2C1BRG = 0x12;     // baud rate set for 100KHz
     //I2C1BRG = 0x12;       // baud rate set for 400Khz  
     I2C1CONL = 0x8000;   // enable i2c 7bit addr
@@ -148,6 +148,9 @@ void i2c_Stop(void){
 I2C_STATUS_MSG i2c_Write(uint8_t *data, uint8_t length){
     
     if(dataqueuestatus.full)
+        //if(data != NULL){
+         //   free(data);
+        //}
         return I2C_STATUS_FULL;
     
     endblock->length = length;
@@ -254,6 +257,7 @@ I2C_STATUS_MSG i2c_Ready(void){
     
  };
  
+ /*
  const uint8_t chset2[] = {
      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //chr 0
      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -346,8 +350,11 @@ I2C_STATUS_MSG i2c_Ready(void){
     i2c_Write(pdata, i);
    
  }
+ */
  
- // display large char at position on display
+ /*
+  *  display large char at position on display   
+  */
  void sh1106_charat(uint8_t col, uint8_t line, int chr){
        uint8_t *pdata; 
     if((pdata = (uint8_t *)malloc(54)) == NULL){
@@ -411,7 +418,6 @@ I2C_STATUS_MSG i2c_Ready(void){
      
  }
  
- 
  void display_int(int16_t val, uint8_t line) {
     bool negf;
     uint8_t pos = 6;
@@ -424,12 +430,12 @@ I2C_STATUS_MSG i2c_Ready(void){
     }
 
     if (val == 0) {
-        sh1106_Char(1, line, 0);
-        sh1106_Char(2, line, 0);
-        sh1106_Char(3, line, 0);
-        sh1106_Char(4, line, 0);
-        sh1106_Char(5, line, 0);
-        sh1106_Char(6, line, 10);
+        sh1106_charat(1, line, 0);
+        sh1106_charat(2, line, 0);
+        sh1106_charat(3, line, 0);
+        sh1106_charat(4, line, 0);
+        sh1106_charat(5, line, 0);
+        sh1106_charat(6, line, 10);
         return;
     }
 
@@ -440,19 +446,19 @@ I2C_STATUS_MSG i2c_Ready(void){
         dig = val % 10;
         if (dig == 0)
             dig = 10;
-        sh1106_Char(pos, line, dig);
+        sh1106_charat(pos, line, dig);
 
         val = val / 10;
         pos--;
     }
 
     if (negf == true) {
-        sh1106_Char(pos, line, 11);
+        sh1106_charat(pos, line, 11);
         pos--;
     }
 
     for (; pos > 0; pos--) {
-        sh1106_Char(pos, line, 0);
+        sh1106_charat(pos, line, 0);
     }
 }
  

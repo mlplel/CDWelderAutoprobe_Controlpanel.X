@@ -16,7 +16,7 @@
 */
 
 #define ENCMINVAL   0
-#define ENCMAXVAL   40
+#define ENCMAXVAL   15
 
 
 #include "process.h"
@@ -42,7 +42,9 @@ void run100us(){
     updateEncoder();    
 }
 
-
+/*
+ *  main exacution loop run every 1 ms
+ */
 void run1ms(){
     static uint16_t longtime = 0;
     //static uint8_t data = 0;
@@ -108,12 +110,10 @@ void run1ms(){
     
     if(oldencvalue != encvalue){
         LED1_Toggle();
-        sh1106_charat(2, 4, oldencvalue);
-        sh1106_charat(3, 4, encvalue);
+        display_int(encvalue, 4);
         oldencvalue = encvalue;
         
-    } 
-    
+    }  
    
 }
 
@@ -130,7 +130,10 @@ void clearswitchevent(){
     swevent = SW_NOEVENT; 
 }
 
-
+/*
+ *  sets swevent to the last switch event
+ * 
+ */
 void updateSwitch(void){
     const uint16_t DOUBLECLICKTIME = 300;
     static uint8_t swinputreg = 0xFF;
@@ -146,7 +149,6 @@ void updateSwitch(void){
     } else {
         swinputreg = swinputreg & 0xFE;
     }
-
 
     if (swinputreg == 0xFF) {
         switch (swstate) {

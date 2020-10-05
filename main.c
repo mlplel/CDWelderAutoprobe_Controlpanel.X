@@ -56,6 +56,8 @@
 #include "i2c.h"
 #include "spi.h"
 
+#include "init.h"
+
 
 void powerUp(void);
 bool isPowerOnMsg(void);
@@ -69,83 +71,51 @@ void powerUpError(void);
 int main(void)
 {
     static uint8_t timecnt = 0;
+    static bool initf = false;
     // initialize the device
-    SYSTEM_Initialize();
-    
+    SYSTEM_Initialize();    
     i2c_Init();
-    sh1106_Init();
-    
+    //sh1106_Init();    
     spi_IOSetup();
     spi1_Init();
     spi2_Init();
     
-    //powerUp();
-    
+    //powerUp();    
     LED4_SetLow();
-
-    while (1)
-    {
-        // Add your application code
-         if(IFS0bits.T1IF)
-        {
-             //TP3_Toggle();
-            timecnt++;       
+    
+    
+    // init loop
+    while (initf == false) {
+        if (IFS0bits.T1IF) {
+            timecnt++;
+            IFS0bits.T1IF = false;
+            if (timecnt == 10) {
+                timecnt = 0;
+                initf = init_loop();
+            }
+        }
+    }
+    
+    // main program loop
+    while (1) {
+        if (IFS0bits.T1IF) {
+            timecnt++;
             IFS0bits.T1IF = false;
             run100us();
-            
-            if(timecnt == 10){
+
+            if (timecnt == 10) {
                 timecnt = 0;
                 run1ms();
-            }            
-        }         
+            }
+        }
     }
 
     return 1;
 }
 
-/*
-void powerUp(){
-    
-    while(!isPowerOnMsg());
-    //while(isTxBusy() == 1);
-    setMsg(RPY_init);
-   
-    while(!isInitMsg());
-    
-    
-    //powerUpError();
-    
-}
 
-
-bool isPowerOnMsg(){
-    //TP2_Toggle();
-    if(isNewMsg()){
-        MAINMSG msg = getMsg();    
-        if((msg.command == MSG_poweron.command) && (msg.data3 == MSG_poweron.data3)){
-            return true;
-        }        
-    }
-    return false;
-}
-
-bool isInitMsg(){
-    //TP3_Toggle();
-    if(isNewMsg()){
-        MAINMSG msg = getMsg();    
-        if((msg.command == MSG_init.command) && (msg.data3 == MSG_init.data3)){
-            return true;
-        }
-    }
-    return false;
-}
-
-*/
 void powerUpError(){
-    
     LED3_SetLow();
-    
-    
 }
 /**
  End of File

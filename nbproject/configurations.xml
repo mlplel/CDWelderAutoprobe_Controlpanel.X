@@ -15,13 +15,14 @@
         <itemPath>mcc_generated_files/system.h</itemPath>
         <itemPath>mcc_generated_files/tmr1.h</itemPath>
       </logicalFolder>
-      <itemPath>input.h</itemPath>
       <itemPath>process.h</itemPath>
       <itemPath>i2c.h</itemPath>
       <itemPath>spi.h</itemPath>
       <itemPath>messages.h</itemPath>
       <itemPath>displaydata.h</itemPath>
       <itemPath>maincharset.h</itemPath>
+      <itemPath>init.h</itemPath>
+      <itemPath>display.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -42,13 +43,14 @@
         <itemPath>mcc_generated_files/tmr1.c</itemPath>
       </logicalFolder>
       <itemPath>main.c</itemPath>
-      <itemPath>input.c</itemPath>
       <itemPath>process.c</itemPath>
       <itemPath>i2c.c</itemPath>
       <itemPath>spi.c</itemPath>
       <itemPath>messages.c</itemPath>
       <itemPath>displaydata.c</itemPath>
       <itemPath>maincharset.c</itemPath>
+      <itemPath>init.c</itemPath>
+      <itemPath>display.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -264,6 +266,7 @@
         <property key="UART 1" value="true"/>
         <property key="UART 2" value="true"/>
         <property key="debugoptions.useswbreakpoints" value="false"/>
+        <property key="firmware.download.all" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="false"/>
