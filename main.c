@@ -59,14 +59,8 @@
 #include "init.h"
 
 
-void powerUp(void);
-bool isPowerOnMsg(void);
-bool isInitMsg(void);
-void powerUpError(void);
-
-
 /*
-                         Main application
+ *                 Main application
  */
 int main(void)
 {
@@ -74,14 +68,11 @@ int main(void)
     static bool initf = false;
     // initialize the device
     SYSTEM_Initialize();    
-    i2c_Init();
-    //sh1106_Init();    
-    spi_IOSetup();
-    spi1_Init();
-    spi2_Init();
+   
+    init_start();
     
     //powerUp();    
-    LED4_SetLow();
+    //LED4_SetLow();
     
     
     // init loop
@@ -113,10 +104,6 @@ int main(void)
     return 1;
 }
 
-
-void powerUpError(){
-    LED3_SetLow();
-}
 /**
  End of File
 */

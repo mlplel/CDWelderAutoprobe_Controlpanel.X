@@ -8,6 +8,8 @@
 #include "messages.h"
 #include <stdbool.h>
 
+/*
+
 const MAINMSG MSG_status = {CMD_status, 0x0000, 0x0000, 0x0000, false};
 const MAINMSG MSG_poweron = {CMD_poweron, 0x0000, 0x0000, 0x0005, false};
 const MAINMSG MSG_init = {CMD_init, 0x0000, 0x0000, 0x2501, false};
@@ -24,7 +26,7 @@ const MAINMSG RPY_none = {RPO_none, 0x0000, 0xFFFF, 0x0000, true};
 const MAINMSG PRY_probepressure = {RPO_probepressure, 0x0000, 0x0000, 0x0000, true};
 const MAINMSG RPY_error = {RPO_error, 0xFFFF, 0xFFFF, 0xFFFF, true};
 const MAINMSG RPY_cal = {RPO_calmode, 0x0000, 0x0000, 0x0000, true};
-
+*/
 
 
 

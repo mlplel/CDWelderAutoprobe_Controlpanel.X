@@ -5,6 +5,10 @@
  * Created on May 26, 2019, 12:15 PM
  */
 
+#include <stdbool.h>
+#include <xc.h>
+
+
 #ifndef PROCESS_H
 #define	PROCESS_H
 
@@ -25,13 +29,35 @@ extern "C" {
         SW_DCLICKED = 4
     } SWEVENT;
 
+   
     typedef enum {
-        MODE_INIT = 0,
-        MODE_OPERATE = 2,
-        MODE_CAL = 10,
+        RUNMODE_RUN,
+        RUNMODE_SET,
+        RUNMODE_CAL,
+        RUNMODE_TEST,
+        RUNMODE_STARTUP
+    } RUNMODE;
+    
+    
+    typedef struct {
+        bool MOTORPOWER;
+        bool MOTORINIT;
+        bool MOTORRUN;
+        bool CTLPOWER;
+        bool CTLENCCHANGED;
+        bool CTLRESEDMODE;
+    } PROC_STAT;
 
-    } PROCESSMODE;
-
+    typedef struct {
+        int16_t pressure;
+        int16_t kp;
+        int16_t ki;
+        int16_t kd;
+        int16_t imax;
+        int16_t outlimit;   
+        bool validf;
+    }PRESSET;
+    
     void run100us(void);
     void run1ms(void);
     void updateSwitch(void);
@@ -42,13 +68,72 @@ extern "C" {
     void calmode_init(void);
     
     void updateEncoder(void);
-    void processMsg(void);
+    bool processMsg(void);
     void displayupdate(void);
     
     
     
     void testheader(void);
+    
+/**
+  @Summary
+ 
+  @Description
 
+  @Preconditions
+
+  @Returns
+
+  @Param
+
+  @Example
+*/
+void process_init(void);    
+    
+/**
+  @Summary
+ 
+  @Description
+
+  @Preconditions
+
+  @Returns
+
+  @Param
+
+  @Example
+*/ 
+
+/**
+  @Summary
+ 
+  @Description
+
+  @Preconditions
+
+  @Returns
+
+  @Param
+
+  @Example
+*/     
+    void run_startup(void);
+    
+    
+/**
+  @Summary
+ 
+  @Description
+
+  @Preconditions
+
+  @Returns
+
+  @Param
+
+  @Example
+*/    
+    
 
 #ifdef	__cplusplus
 }

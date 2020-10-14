@@ -32,14 +32,13 @@ static uint16_t memaddr = 0;
 static uint8_t  memdata = 0;
 //static uint8_t* memdatap = &memdata;
 
-static uint16_t dummyread;
+//static uint16_t dummyread;
 static uint8_t tempread;
 
 static int16_t txdata[6];
 static int16_t rxdata[6];
 static bool newrxf = 0;
 static bool newtxf = 0;
-
 
 static int16_t msglog[80];
 static int16_t msglogp = 0;
@@ -58,13 +57,7 @@ void spi_IOSetup(void){
     RPINR22bits.SDI2R = 0x000F; //RB15->SPI2:SDI  MOSI
 
     __builtin_write_OSCCONL(OSCCON | 0x40); // lock PPS
-    
-    //testing
-    
-    txdata[0] = 0x13F5;
-    txdata[1] = 0x3095;
-    txdata[2] = 0x63FD;
-    txdata[3] = 0x22EE;
+   
 }
 
 void spi1_Init(void){
@@ -126,7 +119,7 @@ bool mem_isidle(void) {
  *  returns eeprom write status.
  * 
  * @Description
- *  None blocking status check of eeprom.  Requires 2 calls to get status.
+ *  Non blocking status check of eeprom.  Requires 2 calls to get status.
  * 
  * @Param
  *  None.
@@ -193,6 +186,7 @@ uint8_t mem_readbyte(void){
     return memdata;
 }
 
+
 void mem_writebyte(uint8_t data, uint16_t addr){
     if(!mem_isidle()){
         return;
@@ -203,7 +197,7 @@ void mem_writebyte(uint8_t data, uint16_t addr){
     eetxstate = WRITE1;
     mem_start(EEPROM_WRITE);       
 }
-
+/*
 uint8_t spi1_TxByte(uint8_t data){
     
     while(SPI1STATLbits.SPITBF != 0);
@@ -281,7 +275,8 @@ uint8_t mem_ReadByte(uint16_t addr){
     MCS_SetHigh();
     return SPI1BUFL;      
 }
-
+*/
+/*
 MAINMSG getMsg(){
     
     MAINMSG msg;
@@ -299,6 +294,7 @@ MAINMSG getMsg(){
     msg.validf = true;
     return msg;      
 }
+*/
 
 MAINMSG get_msg(){     
     MAINMSG msg;
@@ -324,7 +320,6 @@ bool is_newmsg(){
     return newrxf;
 }
 
-
 int16_t put_msg(MAINMSG msg) {
     if (newtxf == true) return -1; // message buffer is busy
 
@@ -340,7 +335,6 @@ int16_t put_msg(MAINMSG msg) {
 bool is_txbusy(){
     return newtxf;
 }
-
 
 
 void __attribute__ ( ( interrupt, no_auto_psv ) ) _SPI1Interrupt ( void ){  
@@ -397,8 +391,7 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _SPI1TXInterrupt ( void ){
                     
         default:
             break;
-    }
-    
+    }    
 }
 
 void __attribute__ ( ( interrupt, no_auto_psv ) ) _SPI1RXInterrupt ( void ){
@@ -486,19 +479,21 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _SPI2RXInterrupt ( void ){
     IFS3bits.SPI2RXIF = 0;    
     
     int i = 0;
+    // if valid msg to go out move to SPI2BUFL.
+    // else move dummy msg to output and move received msg to buffer.
     if (newtxf == true) {
         for (; i < 4; i++) {
             SPI2BUFL = txdata[i];
             rxdata[i] = SPI2BUFL;
         }
     } else {
-        SPI2BUFL = RPY_none.command;
+        SPI2BUFL = RPY_none;
         rxdata[0] = SPI2BUFL;
-        SPI2BUFL = RPY_none.data1;
+        SPI2BUFL = 0x00;
         rxdata[1] = SPI2BUFL;
-        SPI2BUFL = RPY_none.data2;
+        SPI2BUFL = 0x00;
         rxdata[2] = SPI2BUFL;
-        SPI2BUFL = RPY_none.data3;
+        SPI2BUFL = 0x00;
         rxdata[3] = SPI2BUFL;        
     }
     newtxf = false;

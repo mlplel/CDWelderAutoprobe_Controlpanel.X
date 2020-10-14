@@ -17,20 +17,31 @@ extern "C" {
 #include <stdbool.h>
 
     typedef enum {
-        RPO_init = 0x3B01,
-        RPO_status,
-        RPO_none,
-        RPO_command,
-        RPO_probepressure,
-        RPO_calmode,
+        RPY_init = 0x3B01,
+        RPY_poweron,
+        RPY_initfinished,
+        RPY_status,
+        RPY_none,
+        RPY_command,
+        RPY_probepressure,
+        RPY_setpl1,
+        RPY_setpl2,
+        RPY_setpr1,
+        RPY_setpr2,
+        RPY_runboth,
+        RPY_runpl,
+        RPY_runpr,
+        RPY_calmode,
         CMD_poweron = 0xA301,
         CMD_init,
-        CMD_cmdok,
+        CMD_ok,
         CMD_status,
+        CMD_busbusy,
         CMD_sync,
         CMD_cal,
         CMD_testmode1 = 0xB101,
-        RPO_error = 0xFFFF,
+        CMD_none = 1100,
+        RPY_error = 0xFFFF,
         CMD_error = 0xFFFF,
     } CMD;
 
@@ -42,18 +53,31 @@ extern "C" {
     } STATUS1BITS;
 
     typedef struct {
-        int16_t command;
+        CMD command;
         int16_t data1;
         int16_t data2;
         int16_t data3;
         bool validf;
     } MAINMSG;
 
+    // operating mode
+    typedef enum {
+        MODE_RUNBOTH = 10,
+        MODE_RUNPL,
+        MODE_RUNPR,
+        MODE_CALPL,
+        MODE_CALPR,
+        MODE_CALZERO,
+        MODE_POWERON,
+        MODE_INIT,
+    } MODE;
+
     typedef enum {
         TESTPROBE1 = 0x0140,
         TESTPROBE2,
     } CTLCMD;
 
+    /*
     extern const MAINMSG MSG_status;
     extern const MAINMSG MSG_poweron;
     extern const MAINMSG MSG_init;
@@ -70,7 +94,7 @@ extern "C" {
     extern const MAINMSG PRY_probepressure;
     extern const MAINMSG RPY_error;
     extern const MAINMSG RPY_cal;
-
+     */
 
 #ifdef	__cplusplus
 }

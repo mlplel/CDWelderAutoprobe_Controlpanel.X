@@ -20,9 +20,9 @@
       <itemPath>spi.h</itemPath>
       <itemPath>messages.h</itemPath>
       <itemPath>displaydata.h</itemPath>
-      <itemPath>maincharset.h</itemPath>
       <itemPath>init.h</itemPath>
       <itemPath>display.h</itemPath>
+      <itemPath>menu.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -48,9 +48,9 @@
       <itemPath>spi.c</itemPath>
       <itemPath>messages.c</itemPath>
       <itemPath>displaydata.c</itemPath>
-      <itemPath>maincharset.c</itemPath>
       <itemPath>init.c</itemPath>
       <itemPath>display.c</itemPath>
+      <itemPath>menu.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -220,6 +220,7 @@
         <property key="legacy-libc" value="false"/>
         <property key="mpreserve-all" value="false"/>
         <property key="oXC16glb-macros" value=""/>
+        <property key="omit-pack-options" value="1"/>
         <property key="output-file-format" value="elf"/>
         <property key="preserve-all" value="false"/>
         <property key="preserve-file" value=""/>
@@ -266,7 +267,6 @@
         <property key="UART 1" value="true"/>
         <property key="UART 2" value="true"/>
         <property key="debugoptions.useswbreakpoints" value="false"/>
-        <property key="firmware.download.all" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="false"/>

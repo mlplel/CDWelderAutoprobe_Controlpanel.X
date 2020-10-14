@@ -13,6 +13,23 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
+    
+    
+/**
+  @Summary
+ 
+  @Description
+
+  @Preconditions
+
+  @Returns
+
+  @Param
+
+  @Example
+*/    
+void init_start(void);    
+    
 
 /**
   @Summary
@@ -27,7 +44,7 @@ extern "C" {
 
   @Example
 */
-    bool init_loop(void);
+bool init_loop(void);
 
 /**
   @Summary

@@ -11,11 +11,10 @@
  low priority timed loops
 
   @Description
-    processes operations.
-    
+    processes operations.    
 */
 
-#define ENCMINVAL   0
+#define ENCMINVAL   1
 #define ENCMAXVAL   15
 
 
@@ -25,96 +24,188 @@
 #include "i2c.h"
 #include "displaydata.h"
 #include "spi.h"
+#include "messages.h"
+#include "display.h"
+#include "menu.h"
+
+/*
+ *   function only called from this file.
+ */
+bool processswitch(void);
+bool config_motor(void);
+
+static PROC_STAT status = {false,false,false,false,false,false};
+
+
+//MODE testopmode = MODE_RUNBOTH;
+uint16_t testpressure = 2400;
+uint16_t testkp = 110;
+uint16_t testki = 20;
+uint16_t testkd = 0;
+uint16_t testilimit = 1000;
+uint16_t testoutlimit = 800;
 
 bool testmem(uint16_t addr, uint8_t* data);
 void testmemdisplay(uint16_t addr, uint8_t data);
 int testwritemem(void);
 
+static MAINMSG lastmsg = {CMD_none, 0x00, 0x00, 0x00, false};
+static MAINMSG lastrpy = {RPY_poweron, 0x00, 0x00, 0x00, false};
+MAINMSG statusmsg = {RPY_status, 0x00, 0x00, 0x00, false};
+MAINMSG plset[2];
+MAINMSG prset[2];
+MAINMSG bothset[4];
+static MODE mode;
+//static RUNMODE runmode = RUNMODE_STARTUP;
 
 static SWSTATE swstate = SW_UP;
 static SWEVENT swevent = SW_NOEVENT;
 static int16_t encvalue = 1;
-static PROCESSMODE processmode = MODE_INIT;
+//static PROCESSMODE processmode = MODE_INIT;
+
+CURSORPOS curpos = {0, 0, true};
 
 
-void run100us(){
+/*
+ *      just for test atm
+ */
+void process_init(void){
     
-    updateEncoder();    
+    mode = MODE_RUNBOTH;
+    statusmsg.data1 = mode;
+    
+    bothset[0].command = RPY_setpl1;
+    bothset[0].data1 = 2410;
+    bothset[0].data2 = testilimit;
+    bothset[0].data3 = testoutlimit;
+    
+    bothset[1].command = RPY_setpl2;
+    bothset[1].data1 = 140;
+    bothset[1].data2 = testki;
+    bothset[1].data3 = testkd;
+    
+    bothset[2].command = RPY_setpr1;
+    bothset[2].data1 = 2412;
+    bothset[2].data2 = testilimit;
+    bothset[2].data3 = testoutlimit;
+    
+    bothset[3].command = RPY_setpr2;
+    bothset[3].data1 = 110;
+    bothset[3].data2 = testki;
+    bothset[3].data3 = testkd;
+    
+    
+    plset[0].command = RPY_setpl1;
+    plset[0].data1 = 2403;
+    plset[0].data2 = testilimit;
+    plset[0].data3 = testoutlimit;
+    
+    plset[1].command = RPY_setpl2;
+    plset[1].data1 = testkp;
+    plset[1].data2 = testki;
+    plset[1].data3 = testkd;
+    
+    
+    prset[0].command = RPY_setpr1;
+    prset[0].data1 = 2404;
+    prset[0].data2 = testilimit;
+    prset[0].data3 = testoutlimit;
+    
+    prset[1].command = RPY_setpr2;
+    prset[1].data1 = testkp;
+    prset[1].data2 = testki;
+    prset[1].data3 = testkd;
+    
+    
+    //cursor(curpos);
 }
 
 /*
  *  main exacution loop run every 1 ms
  */
-void run1ms(){
-    static uint16_t longtime = 0;
-    //static uint8_t data = 0;
-    static uint16_t address = 100;
-    //static uint8_t temp = 0;
-    //static uint16_t alt = 0;
-    static uint16_t displaycount = 0;
-    static int mode = 0;
-    
+void run1ms(){ 
     updateSwitch();
-    
-    
-    SWEVENT se = peekswitchevent();
-    if(se == SW_CLICKED){
-    // process switch clicked
-    
-    }
-    else if(se == SW_DCLICKED){
-        // process switch double clicked
-   
-    }
-    else if(se == SW_LCLICKED){
-        // process switch long clicked
-      //testheader();  
-     
-    }
-    else if(se == SW_ELCLICKED){
-        //process switch extra long clicked
-        calmode_init();
-                
-    }
+    if (processMsg() && (lastmsg.command == CMD_status)) {
 
-    processMsg();
-    
-    if(displaycount == 100){
-        displaycount = 0;
-        displayupdate();
-        //testmemdisplay(address, data);
-    }
-    displaycount++;
-  
-    //test
-    
-    if(longtime == 1000){
-        if(mode == 1){
-            address++;  
+        if (status.MOTORRUN) { // motor module is in operate mode.
+            if (status.MOTORPOWER && status.MOTORINIT) {
+                status.MOTORPOWER = false;
+                status.MOTORINIT = false;
+            }
+            lastrpy = statusmsg;
+            // process control changes here
+            if(status.CTLRESEDMODE == true){
+                if(config_motor()){
+                    status.CTLRESEDMODE = false;
+                }
+            }
+        } else { // motor module is in startup mode.
+            if (status.MOTORPOWER && status.MOTORINIT) {
+                // send motor module configure data.
+                if (config_motor()) {
+                    // motor was configured.
+                    status.MOTORRUN = true;
+                }
+            }
         }
-        
-        longtime = 0;
     }
-    longtime++;
-    
-    
-    // spi testing
-    //if(mode == 0){
-    //    mode = testwritemem();
+    // cursor flash delay probably better place to put this
+    static uint16_t cursorcount = 0;
+    cursorcount++;
+    if(cursorcount == 400){
+        cursorflash();
+        cursorcount = 0;
+    }
+    //displayupdate();
+    SWEVENT se = getSwitchEvent();
+    if(se == SW_CLICKED){
         
-    //} else {
-    //   testmem(address, &data); 
-    //}
-      
-    static int16_t oldencvalue = 0;
+    status.CTLRESEDMODE = true;            
+    }
+    MENUACTION ma = {false};
+    MENUEVENT me = menu(ma);
+    if(me.validf){
+        // process here
+    }
+}
+
+/*
+ * 
+ */
+bool config_motor(){
+    static uint16_t datacnt = 0;
+    if(mode == MODE_RUNBOTH){
+        if(datacnt == 4){
+            lastrpy.command = RPY_runboth;
+            datacnt = 0;
+            return true;
+        }
+        lastrpy = bothset[datacnt];
+        datacnt++;
+        return false; 
+    }
+    if(mode == MODE_RUNPL){
+        if(datacnt == 2){
+            lastrpy.command = RPY_runpl;
+            datacnt = 0;
+            return true;
+        }
+        lastrpy = plset[datacnt];
+        datacnt++;
+        return false;
+    }
+    if(mode == MODE_RUNPR){
+        if(datacnt == 2){
+            lastrpy.command = RPY_runpr;
+            datacnt = 0;
+            return true;
+        }
+        lastrpy = prset[datacnt];
+        datacnt++;
+        return false;
+    }    
     
-    if(oldencvalue != encvalue){
-        LED1_Toggle();
-        display_int(encvalue, 4);
-        oldencvalue = encvalue;
-        
-    }  
-   
+  return false;  
 }
 
 SWEVENT getSwitchEvent(){
@@ -140,7 +231,6 @@ void updateSwitch(void){
     static uint16_t downtime = 0;
     static uint16_t uptime = 0;
     static uint8_t firstclick = false;   
-    
     
      // de-bounce switch
     swinputreg = swinputreg << 1;
@@ -200,7 +290,12 @@ void updateSwitch(void){
         }
     } 
 }
-
+/*
+ * called every 100 us.
+ */
+void run100us(){    
+    updateEncoder();    
+}
 void updateEncoder(void){
     
     static uint8_t oldenc = 0;
@@ -212,88 +307,80 @@ void updateEncoder(void){
     if(oldenc == 0){
         if(enc == 0x01 && encvalue != ENCMAXVAL){
             encvalue++;
+            status.CTLENCCHANGED = true;
         } else if(enc == 0x02 && encvalue != ENCMINVAL){
             encvalue--;
+            status.CTLENCCHANGED = true;
         }            
     }
     oldenc = enc;     
 }
 
-void processMsg(){
-    static int16_t msgerrcnt = 0;
-    
-    if(is_newmsg() == false) return;  
+bool processMsg(){
+    // don't want to process message until last cmd sent and rpy received.
+    if((is_newmsg() == false) || (is_txbusy() == true)) return false;  
     MAINMSG msg = get_msg();
-    if(msg.validf == false) return;
-
-    switch (msg.command) {
-
-
+    if(msg.validf == false) return false;
+    lastmsg = msg;
+    
+    switch(lastmsg.command){
+        
+        case CMD_init:
+            status.MOTORPOWER = true;
+            status.MOTORINIT = true; 
+            lastrpy = statusmsg;
+            break;
         case CMD_poweron:
-            put_msg(RPY_init);
-            processmode = MODE_OPERATE;
+            status.MOTORPOWER = true;
+            lastrpy.command = RPY_init;
+            status.MOTORINIT = true;
+            status.MOTORRUN = false;
             break;
-
-        case CMD_testmode1:
-
-            //testing
-            if (getSwitchEvent() == SW_CLICKED) {
-
-                MAINMSG m;
-                
-                m.command = RPO_probepressure;
-                m.data1 = encvalue;
-                m.data2 = encvalue;
-                m.data3 = encvalue;
-
-                put_msg(m);
-
-            }
-            break;
-            
-        case CMD_cal:
-            // in calibrate and test mode
-            processmode = MODE_CAL;
-            LED4_Toggle();
-            
-            break;
-
         default:
-            msgerrcnt++;
             break;
     }
-    
-    // test for too many errors.
-    if(msgerrcnt > 5){
-        // reset msg process here.
-    }    
+    put_msg(lastrpy);
+    return true;
 }
 
-void displayupdate(){
+/*
+ * 
+ */
+bool processswitch(){
     
-    MAINMSG msg = getMsg();
-    
-    display_int(msg.data1, 2);
-    display_int(msg.data2, 3);
-    //display_int(encvalue, 4);    
-    
-    if((msg.data3 & 0x0040) == 0){
-        LED1_SetLow();
-    } else{
-        LED1_SetHigh();
+  return false;  
+}
+void displayupdate() {
+    static uint16_t count = 100;
+    if (count == 0) {
+        count = 100;
+        if (lastmsg.command == CMD_status) {
+
+            
+            display_int(lastmsg.data1, 1);
+            display_int(lastmsg.data2, 2);
+            //display_int(encvalue, 4);    
+
+            if ((lastmsg.data3 & 0x0040) == 0) {
+                LED1_SetLow();
+            } else {
+                LED1_SetHigh();
+            }
+
+            if ((lastmsg.data3 & 0x0020) == 0) {
+                LED2_SetLow();
+            } else {
+                LED2_SetHigh();
+            }
+
+            if ((lastmsg.data3 & 0x0010) == 0) {
+                LED3_SetLow();
+            } else {
+                LED3_SetHigh();
+            }
+        }
     }
-    
-    if((msg.data3 & 0x0020) == 0){
-        LED2_SetLow();
-    } else{
-        LED2_SetHigh();
-    }
-    
-    if((msg.data3 & 0x0010) == 0){
-        LED3_SetLow();
-    } else{
-        LED3_SetHigh();
-    }      
+    count--;
 }
 
 void testmemdisplay(uint16_t addr, uint8_t data){
@@ -329,9 +416,6 @@ bool testmem(uint16_t addr, uint8_t* data){
             }
             return true;
             break;
-        
-        
-        
         default:
             break;
     }  
@@ -379,17 +463,15 @@ void testheader(){
     if (getSwitchEvent() == SW_LCLICKED) {
         display_header(sym_P1set, sym_blank, sym_blank);
     }
-    
- 
-        
 }
 
 // switch to calibrate and test mode
 void calmode_init() {
-
-    if(put_msg(RPY_cal) == -1){
+    MAINMSG msg;
+    msg.command = RPY_calmode;
+    if(put_msg(msg) == -1){
         return;
     };
     clearswitchevent();
-
 }
+

@@ -46,7 +46,6 @@ extern "C" {
     void sh1106_Clear(void);
 
     void sh1106_Char(uint8_t col, uint8_t line, int chr);
-    void sh1106_charat(uint8_t col, uint8_t line, int chr);
     
     void display_int(int16_t val, uint8_t line);
     
