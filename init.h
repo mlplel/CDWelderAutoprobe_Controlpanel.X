@@ -9,6 +9,9 @@
 #define	INIT_H
 
 #include <stdbool.h>
+#include <xc.h>
+
+#include "process.h"
 
 #ifdef	__cplusplus
 extern "C" {
@@ -59,6 +62,24 @@ bool init_loop(void);
 
   @Example
 */
+PRESSET init_getprobe(uint16_t i, PROBENUMBER p);
+
+/**
+  @Summary
+ 
+  @Description
+
+  @Preconditions
+
+  @Returns
+
+  @Param
+
+  @Example
+*/
+
+
+
 #ifdef	__cplusplus
 }
 #endif

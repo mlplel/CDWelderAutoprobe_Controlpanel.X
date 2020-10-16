@@ -17,6 +17,11 @@ extern "C" {
 #endif
 
     typedef enum {
+        PR = 1,
+        PL = 2
+    } PROBENUMBER;
+
+    typedef enum {
         SW_DOWN = 0,
         SW_UP = 1,
     } SWSTATE;
@@ -45,7 +50,7 @@ extern "C" {
         bool MOTORRUN;
         bool CTLPOWER;
         bool CTLENCCHANGED;
-        bool CTLRESEDMODE;
+        bool RESENDMODE;
     } PROC_STAT;
 
     typedef struct {
@@ -70,9 +75,6 @@ extern "C" {
     void updateEncoder(void);
     bool processMsg(void);
     void displayupdate(void);
-    
-    
-    
     void testheader(void);
     
 /**

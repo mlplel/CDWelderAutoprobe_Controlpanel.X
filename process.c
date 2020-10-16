@@ -27,12 +27,14 @@
 #include "messages.h"
 #include "display.h"
 #include "menu.h"
+#include "init.h"
 
 /*
  *   function only called from this file.
  */
 bool processswitch(void);
 bool config_motor(void);
+bool rpyqueue(uint16_t rpycount);
 
 static PROC_STAT status = {false,false,false,false,false,false};
 
@@ -55,20 +57,18 @@ MAINMSG statusmsg = {RPY_status, 0x00, 0x00, 0x00, false};
 MAINMSG plset[2];
 MAINMSG prset[2];
 MAINMSG bothset[4];
-static MODE mode;
+MAINMSG datamsg[8];
+//static MODE mode;
 //static RUNMODE runmode = RUNMODE_STARTUP;
 
 static SWSTATE swstate = SW_UP;
 static SWEVENT swevent = SW_NOEVENT;
 static int16_t encvalue = 1;
-//static PROCESSMODE processmode = MODE_INIT;
-
-CURSORPOS curpos = {0, 0, true};
+static int16_t encinc = 0;
 
 
 /*
- *      just for test atm
- */
+
 void process_init(void){
     
     mode = MODE_RUNBOTH;
@@ -115,11 +115,8 @@ void process_init(void){
     prset[1].data1 = testkp;
     prset[1].data2 = testki;
     prset[1].data3 = testkd;
-    
-    
-    //cursor(curpos);
 }
-
+*/
 /*
  *  main exacution loop run every 1 ms
  */
@@ -134,44 +131,97 @@ void run1ms(){
             }
             lastrpy = statusmsg;
             // process control changes here
-            if(status.CTLRESEDMODE == true){
-                if(config_motor()){
-                    status.CTLRESEDMODE = false;
+            if(status.RESENDMODE == true){
+                if(rpyqueue(0)){
+                    status.RESENDMODE  = false;
                 }
             }
         } else { // motor module is in startup mode.
             if (status.MOTORPOWER && status.MOTORINIT) {
                 // send motor module configure data.
-                if (config_motor()) {
+                if (rpyqueue(0)) {
                     // motor was configured.
                     status.MOTORRUN = true;
                 }
             }
         }
     }
-    // cursor flash delay probably better place to put this
-    static uint16_t cursorcount = 0;
-    cursorcount++;
-    if(cursorcount == 400){
-        cursorflash();
-        cursorcount = 0;
-    }
-    //displayupdate();
-    SWEVENT se = getSwitchEvent();
-    if(se == SW_CLICKED){
-        
-    status.CTLRESEDMODE = true;            
-    }
-    MENUACTION ma = {false};
+      
+    
+    MENUACTION ma;
+    ma.msg = ME_INPUTSTAT;
+    ma.validf = true;
+    ma.se = getSwitchEvent();
+    ma.enc = encinc;
+    encinc = 0;
     MENUEVENT me = menu(ma);
     if(me.validf){
         // process here
+        switch(me.msg){
+        uint16_t dataidx; 
+        PRESSET ps;
+            case ME_PROBEVALUE:
+                dataidx = 1;
+                if(me.msdata->plsettings.probeactive){
+                    datamsg[0].command = RPY_runpl;
+                    ps = init_getprobe(me.msdata->plsettings.probevalue, PL);
+                    datamsg[dataidx].command = RPY_setpl1;
+                    datamsg[dataidx].data1 = ps.pressure;
+                    datamsg[dataidx].data2 = ps.imax;
+                    datamsg[dataidx].data3 = ps.outlimit;
+                    dataidx++;
+                    datamsg[dataidx].command = RPY_setpl2;
+                    datamsg[dataidx].data1 = ps.kp;
+                    datamsg[dataidx].data2 = ps.ki;
+                    datamsg[dataidx].data3 = ps.kd;
+                    dataidx++;
+                }
+                if(me.msdata->prsettings.probeactive){
+                    datamsg[0].command = RPY_runpr;
+                    ps = init_getprobe(me.msdata->prsettings.probevalue, PR);
+                    datamsg[dataidx].command = RPY_setpr1;
+                    datamsg[dataidx].data1 = ps.pressure;
+                    datamsg[dataidx].data2 = ps.imax;
+                    datamsg[dataidx].data3 = ps.outlimit;
+                    dataidx++;
+                    datamsg[dataidx].command = RPY_setpr2;
+                    datamsg[dataidx].data1 = ps.kp;
+                    datamsg[dataidx].data2 = ps.ki;
+                    datamsg[dataidx].data3 = ps.kd;
+                    dataidx++;
+                }
+                if(dataidx == 5){
+                    datamsg[0].command = RPY_runboth;
+                    rpyqueue(dataidx);
+                } else if(dataidx == 3){
+                    rpyqueue(dataidx);
+                }
+                status.RESENDMODE = true;
+                
+                break;
+            default:
+                break;
+        }
     }
 }
 
 /*
  * 
  */
+bool rpyqueue(uint16_t rpycount){
+    static uint16_t count = 0;
+    if(rpycount != 0){
+       count = rpycount; 
+       return false;
+    }
+    if(count == 0) return true;
+    
+    count--;
+    lastrpy = datamsg[count];    
+    return false;    
+}
+
+/*
 bool config_motor(){
     static uint16_t datacnt = 0;
     if(mode == MODE_RUNBOTH){
@@ -207,7 +257,7 @@ bool config_motor(){
     
   return false;  
 }
-
+*/
 SWEVENT getSwitchEvent(){
     SWEVENT event = swevent;
     swevent = SW_NOEVENT;
@@ -303,7 +353,7 @@ void updateEncoder(void){
     uint8_t enc = ENCB_GetValue() << 1 | ENCA_GetValue();
         
     if(enc == oldenc) return;
-    
+    /*
     if(oldenc == 0){
         if(enc == 0x01 && encvalue != ENCMAXVAL){
             encvalue++;
@@ -312,6 +362,22 @@ void updateEncoder(void){
             encvalue--;
             status.CTLENCCHANGED = true;
         }            
+    }
+    */
+    if(oldenc == 0){
+        if(enc == 0x01){
+            status.CTLENCCHANGED = true;
+            encinc = 1;
+            if(encvalue != ENCMAXVAL){
+                encvalue++;
+            }
+        } else if(enc == 0x02){
+            status.CTLENCCHANGED = true;
+            encinc = -1;
+            if(enc != ENCMINVAL){
+                encvalue--;
+            }
+        }
     }
     oldenc = enc;     
 }

@@ -296,6 +296,38 @@ bool sh1106_clearpage(uint8_t page) {
     }
 }
  
+  /*
+  * 
+  */
+ bool display_2digit(uint8_t val, uint8_t col, uint8_t line) {
+   
+    uint8_t pos = col + 1;
+
+    if ((val == 0) || (val > 99)) {
+        if(!sh1106_charat(col, line, 0)) return false;
+        if(!sh1106_charat(col+1, line, 0)) return false;
+        return true;
+    }
+
+    int dig;
+
+    while (val != 0) {
+
+        dig = val % 10;
+        if (dig == 0)
+            dig = 10;
+        if(!sh1106_charat(pos, line, dig)) return false;
+
+        val = val / 10;
+        pos--;
+    }
+
+    for (; pos >= col; pos--) {
+        if(!sh1106_charat(pos, line, 0)) return false;
+    }
+    return true;
+ }
+ 
 /*
  * 
  */
