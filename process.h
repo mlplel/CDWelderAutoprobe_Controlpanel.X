@@ -63,6 +63,16 @@ extern "C" {
         bool validf;
     }PRESSET;
     
+     typedef enum {
+        CAL_PRESSURE = 1,
+        CAL_ILIMIT = 2,
+        CAL_OLIMIT = 3,
+        CAL_KP = 4,
+        CAL_KI = 5,
+        CAL_KD = 6,
+        CAL_NONE
+    } CALITEM;
+    
     void run100us(void);
     void run1ms(void);
     void updateSwitch(void);

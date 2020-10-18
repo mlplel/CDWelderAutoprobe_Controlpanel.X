@@ -21,10 +21,10 @@
 static uint16_t itime = 0;
 
 static MENUSTATE menustate = {
-    MID_TOP,{0, 1, true},
+    MID_TOP,{0, 1, true},CAL_NONE,
     {true, 1,{2400, 110, 20, 0, 1000, 800, false}},
     {true, 1,{2400, 110, 20, 0, 1000, 800, false}}};
-
+// init should fill this in from eeprom data
 static PRESSET probl[15];
 static PRESSET probr[15];
 
@@ -41,14 +41,14 @@ void init_start(void){
     // testing
     int i;
     for(i = 0;i<15;i++){
-        probl[i].pressure = 2400 + 500 * i;
+        probl[i].pressure = 2400 + 600 * i;
         probl[i].kp = 110;
         probl[i].ki = 20;
         probl[i].kd = 0;
         probl[i].imax = 1000;
         probl[i].outlimit = 800;
         
-        probr[i].pressure = 2400 + 500 * i;
+        probr[i].pressure = 2400 + 600 * i;
         probr[i].kp = 110;
         probr[i].ki = 20;
         probr[i].kd = 0;
@@ -93,9 +93,9 @@ void init_start(void){
  PRESSET init_getprobe(uint16_t i,  PROBENUMBER p){
      PRESSET ps;
      if(p == PL){
-         ps = probl[i];
+         ps = probl[i-1];
      } else {
-         ps = probr[i];
+         ps = probr[i-1];
      }
      return ps;
  }

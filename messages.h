@@ -31,7 +31,10 @@ extern "C" {
         RPY_runboth,
         RPY_runpl,
         RPY_runpr,
-        RPY_calmode,
+        RPY_idle,
+        RPY_calpl,
+        RPY_calpr,
+        RPY_calzero,
         CMD_poweron = 0xA301,
         CMD_init,
         CMD_ok,
@@ -70,6 +73,7 @@ extern "C" {
         MODE_CALZERO,
         MODE_POWERON,
         MODE_INIT,
+        MODE_IDLE
     } MODE;
 
     typedef enum {
@@ -77,24 +81,6 @@ extern "C" {
         TESTPROBE2,
     } CTLCMD;
 
-    /*
-    extern const MAINMSG MSG_status;
-    extern const MAINMSG MSG_poweron;
-    extern const MAINMSG MSG_init;
-    extern const MAINMSG MSG_cmdok;
-    extern const MAINMSG MSG_testmode1;
-    extern const MAINMSG MSG_sync;
-    extern const MAINMSG MSG_error;
-    extern const MAINMSG MSG_calmode;
-
-    extern const MAINMSG RPY_init;
-    extern const MAINMSG RPY_status;
-    extern const MAINMSG RPY_command;
-    extern const MAINMSG RPY_none; 
-    extern const MAINMSG PRY_probepressure;
-    extern const MAINMSG RPY_error;
-    extern const MAINMSG RPY_cal;
-     */
 
 #ifdef	__cplusplus
 }

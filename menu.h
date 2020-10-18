@@ -31,7 +31,9 @@ extern "C" {
         ME_ENTRYSELC,
         ME_MENUINIT,
         ME_INPUTSTAT,
-        ME_PROBEVALUE
+        ME_PROBEVALUE,
+        ME_CALVALUE,
+        ME_CALZERO
     } MENUMSG;
      
     typedef struct {
@@ -63,6 +65,7 @@ extern "C" {
     typedef struct {
         MENUID id;
         CURSORPOS cursorat;
+        CALITEM cal;
         PROBE plsettings;
         PROBE prsettings;
     }MENUSTATE;

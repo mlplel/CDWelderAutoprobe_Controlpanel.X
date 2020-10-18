@@ -35,17 +35,9 @@
 bool processswitch(void);
 bool config_motor(void);
 bool rpyqueue(uint16_t rpycount);
+void process_probemsg(MENUEVENT me);
 
 static PROC_STAT status = {false,false,false,false,false,false};
-
-
-//MODE testopmode = MODE_RUNBOTH;
-uint16_t testpressure = 2400;
-uint16_t testkp = 110;
-uint16_t testki = 20;
-uint16_t testkd = 0;
-uint16_t testilimit = 1000;
-uint16_t testoutlimit = 800;
 
 bool testmem(uint16_t addr, uint8_t* data);
 void testmemdisplay(uint16_t addr, uint8_t data);
@@ -54,9 +46,6 @@ int testwritemem(void);
 static MAINMSG lastmsg = {CMD_none, 0x00, 0x00, 0x00, false};
 static MAINMSG lastrpy = {RPY_poweron, 0x00, 0x00, 0x00, false};
 MAINMSG statusmsg = {RPY_status, 0x00, 0x00, 0x00, false};
-MAINMSG plset[2];
-MAINMSG prset[2];
-MAINMSG bothset[4];
 MAINMSG datamsg[8];
 //static MODE mode;
 //static RUNMODE runmode = RUNMODE_STARTUP;
@@ -67,56 +56,6 @@ static int16_t encvalue = 1;
 static int16_t encinc = 0;
 
 
-/*
-
-void process_init(void){
-    
-    mode = MODE_RUNBOTH;
-    statusmsg.data1 = mode;
-    
-    bothset[0].command = RPY_setpl1;
-    bothset[0].data1 = 2410;
-    bothset[0].data2 = testilimit;
-    bothset[0].data3 = testoutlimit;
-    
-    bothset[1].command = RPY_setpl2;
-    bothset[1].data1 = 140;
-    bothset[1].data2 = testki;
-    bothset[1].data3 = testkd;
-    
-    bothset[2].command = RPY_setpr1;
-    bothset[2].data1 = 2412;
-    bothset[2].data2 = testilimit;
-    bothset[2].data3 = testoutlimit;
-    
-    bothset[3].command = RPY_setpr2;
-    bothset[3].data1 = 110;
-    bothset[3].data2 = testki;
-    bothset[3].data3 = testkd;
-    
-    
-    plset[0].command = RPY_setpl1;
-    plset[0].data1 = 2403;
-    plset[0].data2 = testilimit;
-    plset[0].data3 = testoutlimit;
-    
-    plset[1].command = RPY_setpl2;
-    plset[1].data1 = testkp;
-    plset[1].data2 = testki;
-    plset[1].data3 = testkd;
-    
-    
-    prset[0].command = RPY_setpr1;
-    prset[0].data1 = 2404;
-    prset[0].data2 = testilimit;
-    prset[0].data3 = testoutlimit;
-    
-    prset[1].command = RPY_setpr2;
-    prset[1].data1 = testkp;
-    prset[1].data2 = testki;
-    prset[1].data3 = testkd;
-}
-*/
 /*
  *  main exacution loop run every 1 ms
  */
@@ -146,8 +85,7 @@ void run1ms(){
             }
         }
     }
-      
-    
+          
     MENUACTION ma;
     ma.msg = ME_INPUTSTAT;
     ma.validf = true;
@@ -157,47 +95,9 @@ void run1ms(){
     MENUEVENT me = menu(ma);
     if(me.validf){
         // process here
-        switch(me.msg){
-        uint16_t dataidx; 
-        PRESSET ps;
+        switch(me.msg){        
             case ME_PROBEVALUE:
-                dataidx = 1;
-                if(me.msdata->plsettings.probeactive){
-                    datamsg[0].command = RPY_runpl;
-                    ps = init_getprobe(me.msdata->plsettings.probevalue, PL);
-                    datamsg[dataidx].command = RPY_setpl1;
-                    datamsg[dataidx].data1 = ps.pressure;
-                    datamsg[dataidx].data2 = ps.imax;
-                    datamsg[dataidx].data3 = ps.outlimit;
-                    dataidx++;
-                    datamsg[dataidx].command = RPY_setpl2;
-                    datamsg[dataidx].data1 = ps.kp;
-                    datamsg[dataidx].data2 = ps.ki;
-                    datamsg[dataidx].data3 = ps.kd;
-                    dataidx++;
-                }
-                if(me.msdata->prsettings.probeactive){
-                    datamsg[0].command = RPY_runpr;
-                    ps = init_getprobe(me.msdata->prsettings.probevalue, PR);
-                    datamsg[dataidx].command = RPY_setpr1;
-                    datamsg[dataidx].data1 = ps.pressure;
-                    datamsg[dataidx].data2 = ps.imax;
-                    datamsg[dataidx].data3 = ps.outlimit;
-                    dataidx++;
-                    datamsg[dataidx].command = RPY_setpr2;
-                    datamsg[dataidx].data1 = ps.kp;
-                    datamsg[dataidx].data2 = ps.ki;
-                    datamsg[dataidx].data3 = ps.kd;
-                    dataidx++;
-                }
-                if(dataidx == 5){
-                    datamsg[0].command = RPY_runboth;
-                    rpyqueue(dataidx);
-                } else if(dataidx == 3){
-                    rpyqueue(dataidx);
-                }
-                status.RESENDMODE = true;
-                
+                process_probemsg(me);                
                 break;
             default:
                 break;
@@ -206,7 +106,9 @@ void run1ms(){
 }
 
 /*
- * 
+ *  called with data count to start process.
+ *  called with 0 argument to process reply messages.
+ *  returns true when all all data sent.
  */
 bool rpyqueue(uint16_t rpycount){
     static uint16_t count = 0;
@@ -215,49 +117,11 @@ bool rpyqueue(uint16_t rpycount){
        return false;
     }
     if(count == 0) return true;
-    
     count--;
     lastrpy = datamsg[count];    
     return false;    
 }
 
-/*
-bool config_motor(){
-    static uint16_t datacnt = 0;
-    if(mode == MODE_RUNBOTH){
-        if(datacnt == 4){
-            lastrpy.command = RPY_runboth;
-            datacnt = 0;
-            return true;
-        }
-        lastrpy = bothset[datacnt];
-        datacnt++;
-        return false; 
-    }
-    if(mode == MODE_RUNPL){
-        if(datacnt == 2){
-            lastrpy.command = RPY_runpl;
-            datacnt = 0;
-            return true;
-        }
-        lastrpy = plset[datacnt];
-        datacnt++;
-        return false;
-    }
-    if(mode == MODE_RUNPR){
-        if(datacnt == 2){
-            lastrpy.command = RPY_runpr;
-            datacnt = 0;
-            return true;
-        }
-        lastrpy = prset[datacnt];
-        datacnt++;
-        return false;
-    }    
-    
-  return false;  
-}
-*/
 SWEVENT getSwitchEvent(){
     SWEVENT event = swevent;
     swevent = SW_NOEVENT;
@@ -289,7 +153,6 @@ void updateSwitch(void){
     } else {
         swinputreg = swinputreg & 0xFE;
     }
-
     if (swinputreg == 0xFF) {
         switch (swstate) {
             case SW_UP:
@@ -324,7 +187,6 @@ void updateSwitch(void){
             default:
                 return;
         } 
-
     } else if (swinputreg == 0x00) {
         switch(swstate){
             case SW_UP:
@@ -333,53 +195,145 @@ void updateSwitch(void){
                 return;
             case SW_DOWN:
                 if(downtime == 0xFFFF) return;
-                downtime++;           
-            
+                downtime++; 
             default:
                 return;
         }
     } 
 }
+
+/*
+ * 
+ */
+void process_probemsg(MENUEVENT me) {
+    uint16_t dataidx;
+    PRESSET ps;
+    dataidx = 1;
+    if (me.msdata->plsettings.probeactive) {
+        datamsg[0].command = RPY_runpl;
+        ps = init_getprobe(me.msdata->plsettings.probevalue, PL);
+        datamsg[dataidx].command = RPY_setpl1;
+        datamsg[dataidx].data1 = ps.pressure;
+        datamsg[dataidx].data2 = ps.imax;
+        datamsg[dataidx].data3 = ps.outlimit;
+        dataidx++;
+        datamsg[dataidx].command = RPY_setpl2;
+        datamsg[dataidx].data1 = ps.kp;
+        datamsg[dataidx].data2 = ps.ki;
+        datamsg[dataidx].data3 = ps.kd;
+        dataidx++;
+    }
+    if (me.msdata->prsettings.probeactive) {
+        datamsg[0].command = RPY_runpr;
+        ps = init_getprobe(me.msdata->prsettings.probevalue, PR);
+        datamsg[dataidx].command = RPY_setpr1;
+        datamsg[dataidx].data1 = ps.pressure;
+        datamsg[dataidx].data2 = ps.imax;
+        datamsg[dataidx].data3 = ps.outlimit;
+        dataidx++;
+        datamsg[dataidx].command = RPY_setpr2;
+        datamsg[dataidx].data1 = ps.kp;
+        datamsg[dataidx].data2 = ps.ki;
+        datamsg[dataidx].data3 = ps.kd;
+        dataidx++;
+    }
+    if (dataidx == 5) {
+        datamsg[0].command = RPY_runboth;
+        rpyqueue(dataidx);
+    } else if (dataidx == 3) {
+        rpyqueue(dataidx);
+    }
+    status.RESENDMODE = true;
+}
+
 /*
  * called every 100 us.
  */
 void run100us(){    
     updateEncoder();    
 }
-void updateEncoder(void){
+void updateEncoder(void){ 
+    static uint16_t timecount = 0;
+    static uint16_t fastmode = 0;
+    static uint8_t oldenc = 0;  
+    static uint16_t counts[4] = {1000,1000,1000,1000};
+    static uint16_t i = 0;
+    uint8_t enc = ENCB_GetValue() << 1 | ENCA_GetValue();   
     
-    static uint8_t oldenc = 0;
-    
-    uint8_t enc = ENCB_GetValue() << 1 | ENCA_GetValue();
-        
-    if(enc == oldenc) return;
-    /*
-    if(oldenc == 0){
-        if(enc == 0x01 && encvalue != ENCMAXVAL){
-            encvalue++;
-            status.CTLENCCHANGED = true;
-        } else if(enc == 0x02 && encvalue != ENCMINVAL){
-            encvalue--;
-            status.CTLENCCHANGED = true;
-        }            
+    timecount++;
+    if(timecount == 50000){
+        timecount = 0;
+        fastmode = 0;
+        counts[0] = 5000;
+        counts[1] = 5000;
+        counts[2] = 5000;
+        counts[3] = 5000;
     }
-    */
+    if(enc == oldenc) return;
+    
+    counts[i] = ((timecount > 5000) ? 5000 : timecount);
+    timecount = 0;
+    i = ((i == 3) ? 0 : i+1);
+    uint16_t avtime = (counts[0] + counts[1] + counts[2] + counts[3])/4;
+    if(avtime < 150){
+        fastmode = 10;
+    }else if(avtime < 400){
+        fastmode = 5;
+    }else if(avtime < 800){
+        fastmode = 2;
+    } else {
+        fastmode = 0;
+    }
+    
+ 
     if(oldenc == 0){
         if(enc == 0x01){
             status.CTLENCCHANGED = true;
-            encinc = 1;
+            switch (fastmode) {
+                case 0:
+                    encinc = 1;
+                    break;
+                case 2:
+                    encinc = 4;
+                    break;
+                case 5:
+                    encinc = 10;
+                    break;
+                case 10:
+                    encinc = 50;
+                    break;
+                default:
+                    break;
+            }            
             if(encvalue != ENCMAXVAL){
                 encvalue++;
             }
         } else if(enc == 0x02){
             status.CTLENCCHANGED = true;
-            encinc = -1;
+             switch (fastmode) {
+                case 0:
+                    encinc = -1;
+                    break;
+                case 2:
+                    encinc = -4;
+                    break;
+                case 5:
+                    encinc = -10;
+                    break;
+                case 10:
+                    encinc = -50;
+                    break;
+                default:
+                    break;
+            }
+           
             if(enc != ENCMINVAL){
                 encvalue--;
             }
         }
     }
-    oldenc = enc;     
+    oldenc = enc;   
+    
 }
 
 bool processMsg(){
@@ -421,7 +375,6 @@ void displayupdate() {
     if (count == 0) {
         count = 100;
         if (lastmsg.command == CMD_status) {
-
             
             display_int(lastmsg.data1, 1);
             display_int(lastmsg.data2, 2);
@@ -531,13 +484,5 @@ void testheader(){
     }
 }
 
-// switch to calibrate and test mode
-void calmode_init() {
-    MAINMSG msg;
-    msg.command = RPY_calmode;
-    if(put_msg(msg) == -1){
-        return;
-    };
-    clearswitchevent();
-}
+
 

@@ -144,6 +144,20 @@ bool display_2digit(uint8_t val, uint8_t col, uint8_t line);
 
   @Example
 */
+bool display_5digit(uint16_t val, uint8_t col, uint8_t line);
+/**
+  @Summary
+ 
+  @Description
+
+  @Preconditions
+
+  @Returns
+
+  @Param
+
+  @Example
+*/
 void cursor(CURSORPOS cp);
 
 

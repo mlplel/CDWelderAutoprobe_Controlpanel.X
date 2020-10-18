@@ -36,7 +36,7 @@ typedef struct
 }DATA_QUEUE_STATUS;
 
 
-#define MAX_I2C_DATABLOCKS      32
+#define MAX_I2C_DATABLOCKS      64
 
 volatile static I2C_STATES i2cstate = I2C_IDLE;
 static uint8_t sh1106_address = 0x78;   // 0x3c << 1 = 0x78
@@ -55,7 +55,7 @@ void i2c_Init(void){
     dataqueuestatus.full = 0;
     pbuffer = NULL;
     // using RB8 and RB9  
-    I2C1BRG = 0x12;     // baud rate set for 100KHz
+    I2C1BRG = 0x12;     // baud rate set for 400KHz
     //I2C1BRG = 0x12;       // baud rate set for 400Khz  
     I2C1CONL = 0x8000;   // enable i2c 7bit addr
     I2C1CONH = 0x0000;
@@ -152,6 +152,7 @@ I2C_STATUS_MSG i2c_Write(uint8_t *data, uint8_t length){
     
     endblock->length = length;
     endblock->pdata = data;
+    __write_to_IEC(IEC1bits.MI2C1IE = 0);
     endblock++;
     if(endblock == (i2cdatablocks + MAX_I2C_DATABLOCKS)){
         endblock = i2cdatablocks;
@@ -160,10 +161,12 @@ I2C_STATUS_MSG i2c_Write(uint8_t *data, uint8_t length){
     if(endblock == startblock){
         dataqueuestatus.full = 1;
     }
+    
     if(i2cstate == I2C_IDLE){
         // force interrupt to start i2c transfer
         IFS1bits.MI2C1IF = 1;
     }
+    __write_to_IEC(IEC1bits.MI2C1IE = 1);
     return I2C_STATUS_OK;
 }
 
