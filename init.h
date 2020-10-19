@@ -77,7 +77,23 @@ PRESSET init_getprobe(uint16_t i, PROBENUMBER p);
 
   @Example
 */
+void init_setprobe(uint16_t i, PROBENUMBER p, PRESSET ps);
 
+
+
+/**
+  @Summary
+ 
+  @Description
+
+  @Preconditions
+
+  @Returns
+
+  @Param
+
+  @Example
+*/
 
 
 #ifdef	__cplusplus

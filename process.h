@@ -70,7 +70,7 @@ extern "C" {
         CAL_KP = 4,
         CAL_KI = 5,
         CAL_KD = 6,
-        CAL_NONE
+        CAL_NONE = 7
     } CALITEM;
     
     void run100us(void);

@@ -29,6 +29,7 @@ static PRESSET probl[15];
 static PRESSET probr[15];
 
 
+
 /*
  * 
  */
@@ -98,4 +99,15 @@ void init_start(void){
          ps = probr[i-1];
      }
      return ps;
+ }
+ 
+ /*
+  * 
+  */
+ void init_setprobe(uint16_t i, PROBENUMBER p, PRESSET ps){     
+     if(p == PL){
+         probl[i-1] = ps;         
+     } else {
+         probr[i-1] = ps;         
+     }
  }

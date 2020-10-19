@@ -16,6 +16,7 @@ menu.c
 
 #include "menu.h"
 #include "display.h"
+#include "init.h"
 
 #include <stdlib.h>
 
@@ -77,7 +78,8 @@ MENUEVENT menu(MENUACTION a) {
         cursorflash();
         cursorcount = 0;
     }   
-
+    menustate.cal = CAL_NONE;
+    
     switch(menustate.id){        
         case MID_TOP:
             e = menu_top(a);
@@ -602,6 +604,7 @@ MENUEVENT menu_calpl1(MENUACTION a){
     // run when menu is 1st displayed.
     if(a.msg == ME_MENUINIT) initcnt = 3;
     if(initcnt != 0){
+        menustate.plsettings.probesettings = init_getprobe(menustate.plsettings.probevalue, PL);
         if(initcnt == 3){
             if(!display_5digit(menustate.plsettings.probesettings.pressure,7,1)) return e;
             initcnt--;
@@ -661,12 +664,15 @@ MENUEVENT menu_calpl1(MENUACTION a){
             if(menustate.cursorat.cursorline == 1){
                 // set pressure value.
                 menustate.plsettings.probesettings.pressure += a.enc;
+                menustate.cal = CAL_PRESSURE;
                 display_5digit(menustate.plsettings.probesettings.pressure,7,1);
             } else if(menustate.cursorat.cursorline == 2){
                 menustate.plsettings.probesettings.kp += a.enc;
+                menustate.cal = CAL_KP;
                 display_5digit(menustate.plsettings.probesettings.kp,7,2);
             } else if(menustate.cursorat.cursorline == 3){
                 menustate.plsettings.probesettings.ki += a.enc;
+                menustate.cal = CAL_KI;
                 display_5digit(menustate.plsettings.probesettings.ki,7,3);
             }
             e.msg = ME_CALVALUE;
@@ -770,12 +776,15 @@ MENUEVENT menu_calpl2(MENUACTION a){
             // entry value change here.
             if(menustate.cursorat.cursorline == 1){                
                 menustate.plsettings.probesettings.imax += a.enc;
+                menustate.cal = CAL_ILIMIT;
                 display_5digit(menustate.plsettings.probesettings.imax,7,1);
             } else if(menustate.cursorat.cursorline == 2){
                 menustate.plsettings.probesettings.outlimit += a.enc;
+                menustate.cal = CAL_OLIMIT;
                 display_5digit(menustate.plsettings.probesettings.outlimit,7,2);
             } else if(menustate.cursorat.cursorline == 3){
                 menustate.plsettings.probesettings.kd += a.enc;
+                menustate.cal = CAL_KD;
                 display_5digit(menustate.plsettings.probesettings.kd,7,3);
             }
             e.msg = ME_CALVALUE;
@@ -820,6 +829,7 @@ MENUEVENT menu_calpr1(MENUACTION a){
     // run when menu is 1st displayed.
     if(a.msg == ME_MENUINIT) initcnt = 3;
     if(initcnt != 0){
+        menustate.prsettings.probesettings = init_getprobe(menustate.prsettings.probevalue, PR);
         if(initcnt == 3){
             if(!display_5digit(menustate.prsettings.probesettings.pressure,7,1)) return e;
             initcnt--;
@@ -879,12 +889,15 @@ MENUEVENT menu_calpr1(MENUACTION a){
             if(menustate.cursorat.cursorline == 1){
                 // set pressure value.
                 menustate.prsettings.probesettings.pressure += a.enc;
+                menustate.cal = CAL_PRESSURE;
                 display_5digit(menustate.prsettings.probesettings.pressure,7,1);
             } else if(menustate.cursorat.cursorline == 2){
                 menustate.prsettings.probesettings.kp += a.enc;
+                menustate.cal = CAL_KP;
                 display_5digit(menustate.prsettings.probesettings.kp,7,2);
             } else if(menustate.cursorat.cursorline == 3){
                 menustate.prsettings.probesettings.ki += a.enc;
+                menustate.cal = CAL_KI;
                 display_5digit(menustate.prsettings.probesettings.ki,7,3);
             }
             e.msg = ME_CALVALUE;
@@ -988,12 +1001,15 @@ MENUEVENT menu_calpr2(MENUACTION a){
             // entry value change here.
             if(menustate.cursorat.cursorline == 1){                
                 menustate.prsettings.probesettings.imax += a.enc;
+                menustate.cal = CAL_ILIMIT;
                 display_5digit(menustate.prsettings.probesettings.imax,7,1);
             } else if(menustate.cursorat.cursorline == 2){
                 menustate.prsettings.probesettings.outlimit += a.enc;
+                menustate.cal = CAL_OLIMIT;
                 display_5digit(menustate.prsettings.probesettings.outlimit,7,2);
             } else if(menustate.cursorat.cursorline == 3){
                 menustate.prsettings.probesettings.kd += a.enc;
+                menustate.cal = CAL_KD;
                 display_5digit(menustate.prsettings.probesettings.kd,7,3);
             }
             e.msg = ME_CALVALUE;

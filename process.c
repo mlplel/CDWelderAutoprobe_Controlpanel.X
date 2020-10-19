@@ -36,6 +36,9 @@ bool processswitch(void);
 bool config_motor(void);
 bool rpyqueue(uint16_t rpycount);
 void process_probemsg(MENUEVENT me);
+void process_calmsg(MENUEVENT me);
+uint16_t calvalue(CALITEM i, PRESSET p, PRESSET* data);
+
 
 static PROC_STAT status = {false,false,false,false,false,false};
 
@@ -99,6 +102,8 @@ void run1ms(){
             case ME_PROBEVALUE:
                 process_probemsg(me);                
                 break;
+            case ME_CALVALUE:
+                process_calmsg(me);
             default:
                 break;
         }
@@ -171,7 +176,7 @@ void updateSwitch(void){
                     } else {
                         firstclick = true;
                     }
-                } else if (downtime < 1000) {
+                } else if (downtime < 800) {
                     if(firstclick == true){
                         swevent = SW_DCLICKED;
                     } else {
@@ -221,7 +226,7 @@ void process_probemsg(MENUEVENT me) {
         datamsg[dataidx].data1 = ps.kp;
         datamsg[dataidx].data2 = ps.ki;
         datamsg[dataidx].data3 = ps.kd;
-        dataidx++;
+        dataidx++;   
     }
     if (me.msdata->prsettings.probeactive) {
         datamsg[0].command = RPY_runpr;
@@ -247,6 +252,93 @@ void process_probemsg(MENUEVENT me) {
 }
 
 /*
+ * 
+ */
+void process_calmsg(MENUEVENT me){
+    static PROBENUMBER aprobe;
+    static uint16_t aprobevalue;
+    static PRESSET aprobeset;
+    uint16_t dataidx = 1;
+    
+    if (me.msdata->plsettings.probeactive) {
+        // process cal for probe PL
+        datamsg[0].command = RPY_calpl;
+        datamsg[0].data1 = me.msdata->cal;
+        datamsg[0].data2 = calvalue(me.msdata->cal, me.msdata->plsettings.probesettings, &aprobeset);
+        if (me.msdata->cal == CAL_NONE) {
+            aprobe = PL;
+            aprobevalue = me.msdata->plsettings.probevalue;
+            aprobeset = me.msdata->plsettings.probesettings;
+
+            datamsg[dataidx].command = RPY_setpl1;
+            datamsg[dataidx].data1 = aprobeset.pressure;
+            datamsg[dataidx].data2 = aprobeset.imax;
+            datamsg[dataidx].data3 = aprobeset.outlimit;
+            dataidx++;
+            datamsg[dataidx].command = RPY_setpl2;
+            datamsg[dataidx].data1 = aprobeset.kp;
+            datamsg[dataidx].data2 = aprobeset.ki;
+            datamsg[dataidx].data3 = aprobeset.kd;
+            dataidx++;
+        }
+        init_setprobe(aprobevalue, PL, aprobeset);
+        rpyqueue(dataidx);
+    }
+    else if (me.msdata->prsettings.probeactive) {
+        // process cal for probe PR
+        datamsg[0].command = RPY_calpr;
+        datamsg[0].data1 = me.msdata->cal;
+        datamsg[0].data2 = calvalue(me.msdata->cal, me.msdata->prsettings.probesettings, &aprobeset);
+        if (me.msdata->cal == CAL_NONE) {
+            aprobe = PR;
+            aprobevalue = me.msdata->prsettings.probevalue;
+            aprobeset = me.msdata->prsettings.probesettings;
+
+            datamsg[dataidx].command = RPY_setpl1;
+            datamsg[dataidx].data1 = aprobeset.pressure;
+            datamsg[dataidx].data2 = aprobeset.imax;
+            datamsg[dataidx].data3 = aprobeset.outlimit;
+            dataidx++;
+            datamsg[dataidx].command = RPY_setpl2;
+            datamsg[dataidx].data1 = aprobeset.kp;
+            datamsg[dataidx].data2 = aprobeset.ki;
+            datamsg[dataidx].data3 = aprobeset.kd;
+            dataidx++;
+        }
+        init_setprobe(aprobevalue, PR, aprobeset);
+        rpyqueue(dataidx);
+    }
+}
+
+/*
+ * 
+ */
+uint16_t calvalue(CALITEM i, PRESSET p, PRESSET* data){
+    
+    switch(i){
+        case CAL_PRESSURE:
+            data->pressure = p.pressure;
+            return p.pressure;
+        case CAL_KP:
+            data->kp = p.kp;
+            return p.kp;
+        case CAL_KI:
+            data->ki = p.ki;
+            return p.ki;
+        case CAL_KD:
+            data->kd = p.kd;
+            return p.kd;
+        case CAL_ILIMIT:
+            data->imax = p.imax;
+            return p.imax;
+        case CAL_OLIMIT:
+            data->outlimit = p.outlimit;
+            return p.outlimit;
+        default:
+            return 0;
+    }    
+}
+/*
  * called every 100 us.
  */
 void run100us(){    
@@ -271,22 +363,20 @@ void updateEncoder(void){
     }
     if(enc == oldenc) return;
     
-    counts[i] = ((timecount > 5000) ? 5000 : timecount);
-    timecount = 0;
-    i = ((i == 3) ? 0 : i+1);
-    uint16_t avtime = (counts[0] + counts[1] + counts[2] + counts[3])/4;
-    if(avtime < 150){
-        fastmode = 10;
-    }else if(avtime < 400){
-        fastmode = 5;
-    }else if(avtime < 800){
-        fastmode = 2;
-    } else {
-        fastmode = 0;
-    }
-    
- 
-    if(oldenc == 0){
+    if (oldenc == 0) {
+        counts[i] = ((timecount > 5000) ? 5000 : timecount);
+        timecount = 0;
+        i = ((i == 3) ? 0 : i + 1);
+        uint16_t avtime = (counts[0] + counts[1] + counts[2] + counts[3]) / 4;
+        if (avtime < 200) {
+            fastmode = 10;
+        } else if (avtime < 400) {
+            fastmode = 5;
+        } else if (avtime < 1000) {
+            fastmode = 2;
+        } else {
+            fastmode = 0;
+        }
         if(enc == 0x01){
             status.CTLENCCHANGED = true;
             switch (fastmode) {
