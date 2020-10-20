@@ -197,105 +197,13 @@ void mem_writebyte(uint8_t data, uint16_t addr){
     eetxstate = WRITE1;
     mem_start(EEPROM_WRITE);       
 }
+
 /*
-uint8_t spi1_TxByte(uint8_t data){
-    
-    while(SPI1STATLbits.SPITBF != 0);
-    SPI1BUFL = data;
-    while(SPI1STATLbits.SRMT == 0);
-    return SPI1BUFL;    
-}
-
-uint8_t mem_ReadStatus(void){
-    
-    while(SPI1STATLbits.SRMT == 0);  // spi1 is busy
-    
-    MCS_SetLow();
-    SPI1BUFL = EEPROM_RDSR;
-    while(SPI1STATLbits.SRMT == 0);
-    dummyread = SPI1BUFL;
-    SPI1BUFL = EEPROM_DUMMY;
-    while(SPI1STATLbits.SRMT == 0);
-    MCS_SetHigh();
-    return SPI1BUFL;
-}
-
-void mem_WriteEnable(void){
-    
-    while(SPI1STATLbits.SRMT == 0);  // spi1 is busy
-    MCS_SetLow();
-    SPI1BUFL = EEPROM_WREN;
-    while(SPI1STATLbits.SRMT == 0);
-    MCS_SetHigh();
-    dummyread = SPI1BUFL;    
-}
-
-void mem_WriteByte(uint8_t data, uint16_t addr){
-    uint8_t temp;
-    
-    while(SPI1STATLbits.SRMT == 0);  // spi1 is busy
-    
-    temp = mem_ReadStatus();
-    if((temp & EEPROM_WEN) == 0){
-        mem_WriteEnable();
-    }
-    
-    MCS_SetLow();
-    SPI1BUFL = EEPROM_WRITE;
-    while(SPI1STATLbits.SRMT == 0);
-    dummyread = SPI1BUFL;
-    SPI1BUFL = (addr >> 8);
-    while(SPI1STATLbits.SRMT == 0);
-    dummyread = SPI1BUFL;
-    SPI1BUFL = (addr & 0x00FF);
-    while(SPI1STATLbits.SRMT == 0);
-    dummyread = SPI1BUFL;
-    SPI1BUFL = data;
-    while(SPI1STATLbits.SRMT == 0);
-    MCS_SetHigh();
-    dummyread = SPI1BUFL;    
-}
-
-uint8_t mem_ReadByte(uint16_t addr){    
-    
-    while(SPI1STATLbits.SRMT == 0);  // spi1 is busy
-       
-    MCS_SetLow();
-    SPI1BUFL = EEPROM_READ;
-    while(SPI1STATLbits.SRMT == 0);
-    dummyread = SPI1BUFL;
-    SPI1BUFL = (addr >> 8);
-    while(SPI1STATLbits.SRMT == 0);
-    dummyread = SPI1BUFL;
-    SPI1BUFL = (addr & 0x00FF);
-    while(SPI1STATLbits.SRMT == 0);
-    dummyread = SPI1BUFL;
-    SPI1BUFL = EEPROM_DUMMY;
-    while(SPI1STATLbits.SRMT == 0);
-    MCS_SetHigh();
-    return SPI1BUFL;      
-}
-*/
-/*
-MAINMSG getMsg(){
-    
-    MAINMSG msg;
-    newrxf = false;
-    
-    msg.command = rxdata[0];
-    msg.data1 = rxdata[1];
-    msg.data2 = rxdata[2];
-    msg.data3 = rxdata[3];
-
-    if (newrxf == true) {
-        msg.validf = false;
-        return msg;
-    }
-    msg.validf = true;
-    return msg;      
-}
-*/
-
+ * 
+ * 
+ * 
+ * 
+ */
 MAINMSG get_msg(){     
     MAINMSG msg;
     newrxf = false;

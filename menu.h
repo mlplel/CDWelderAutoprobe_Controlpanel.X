@@ -33,7 +33,9 @@ extern "C" {
         ME_INPUTSTAT,
         ME_PROBEVALUE,
         ME_CALVALUE,
-        ME_CALZERO
+        ME_CALZERO,
+        ME_IDLE,
+        ME_SAVE
     } MENUMSG;
      
     typedef struct {
@@ -59,7 +61,6 @@ extern "C" {
     typedef struct {
         bool probeactive;
         uint16_t probevalue;
-        PRESSET probesettings;
     }PROBE;
 
     typedef struct {

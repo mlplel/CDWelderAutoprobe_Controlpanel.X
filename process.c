@@ -37,7 +37,6 @@ bool config_motor(void);
 bool rpyqueue(uint16_t rpycount);
 void process_probemsg(MENUEVENT me);
 void process_calmsg(MENUEVENT me);
-uint16_t calvalue(CALITEM i, PRESSET p, PRESSET* data);
 
 
 static PROC_STAT status = {false,false,false,false,false,false};
@@ -46,12 +45,12 @@ bool testmem(uint16_t addr, uint8_t* data);
 void testmemdisplay(uint16_t addr, uint8_t data);
 int testwritemem(void);
 
+static bool savesettingsf = false;
 static MAINMSG lastmsg = {CMD_none, 0x00, 0x00, 0x00, false};
 static MAINMSG lastrpy = {RPY_poweron, 0x00, 0x00, 0x00, false};
 MAINMSG statusmsg = {RPY_status, 0x00, 0x00, 0x00, false};
 MAINMSG datamsg[8];
-//static MODE mode;
-//static RUNMODE runmode = RUNMODE_STARTUP;
+
 
 static SWSTATE swstate = SW_UP;
 static SWEVENT swevent = SW_NOEVENT;
@@ -104,9 +103,17 @@ void run1ms(){
                 break;
             case ME_CALVALUE:
                 process_calmsg(me);
+                break;
+            case ME_SAVE:
+                savesettingsf = true;
+                break;
             default:
                 break;
         }
+    }
+    if(savesettingsf){
+        if(init_writesettings())
+            savesettingsf = false;
     }
 }
 
@@ -247,7 +254,10 @@ void process_probemsg(MENUEVENT me) {
         rpyqueue(dataidx);
     } else if (dataidx == 3) {
         rpyqueue(dataidx);
-    }
+    } else if (dataidx == 1){
+        datamsg[0].command = RPY_idle;
+        rpyqueue(dataidx);
+    }    
     status.RESENDMODE = true;
 }
 
@@ -255,89 +265,48 @@ void process_probemsg(MENUEVENT me) {
  * 
  */
 void process_calmsg(MENUEVENT me){
-    static PROBENUMBER aprobe;
-    static uint16_t aprobevalue;
-    static PRESSET aprobeset;
     uint16_t dataidx = 1;
     
     if (me.msdata->plsettings.probeactive) {
         // process cal for probe PL
         datamsg[0].command = RPY_calpl;
         datamsg[0].data1 = me.msdata->cal;
-        datamsg[0].data2 = calvalue(me.msdata->cal, me.msdata->plsettings.probesettings, &aprobeset);
-        if (me.msdata->cal == CAL_NONE) {
-            aprobe = PL;
-            aprobevalue = me.msdata->plsettings.probevalue;
-            aprobeset = me.msdata->plsettings.probesettings;
-
-            datamsg[dataidx].command = RPY_setpl1;
-            datamsg[dataidx].data1 = aprobeset.pressure;
-            datamsg[dataidx].data2 = aprobeset.imax;
-            datamsg[dataidx].data3 = aprobeset.outlimit;
-            dataidx++;
-            datamsg[dataidx].command = RPY_setpl2;
-            datamsg[dataidx].data1 = aprobeset.kp;
-            datamsg[dataidx].data2 = aprobeset.ki;
-            datamsg[dataidx].data3 = aprobeset.kd;
-            dataidx++;
-        }
-        init_setprobe(aprobevalue, PL, aprobeset);
-        rpyqueue(dataidx);
-    }
-    else if (me.msdata->prsettings.probeactive) {
+        datamsg[0].data2 = init_getprobeitem(me.msdata->plsettings.probevalue, PL, me.msdata->cal);
+    } else if (me.msdata->prsettings.probeactive) {
         // process cal for probe PR
         datamsg[0].command = RPY_calpr;
         datamsg[0].data1 = me.msdata->cal;
-        datamsg[0].data2 = calvalue(me.msdata->cal, me.msdata->prsettings.probesettings, &aprobeset);
-        if (me.msdata->cal == CAL_NONE) {
-            aprobe = PR;
-            aprobevalue = me.msdata->prsettings.probevalue;
-            aprobeset = me.msdata->prsettings.probesettings;
+        datamsg[0].data2 = init_getprobeitem(me.msdata->prsettings.probevalue, PR, me.msdata->cal);
+    } else {
+        datamsg[0].command = RPY_idle;
+        
+        datamsg[dataidx].command = RPY_setpl1;
+        datamsg[dataidx].data1 = init_getprobeitem(me.msdata->plsettings.probevalue, PL, CAL_PRESSURE);
+        datamsg[dataidx].data2 = init_getprobeitem(me.msdata->plsettings.probevalue, PL, CAL_ILIMIT);
+        datamsg[dataidx].data3 = init_getprobeitem(me.msdata->plsettings.probevalue, PL, CAL_OLIMIT);
+        dataidx++;
+        datamsg[dataidx].command = RPY_setpl2;
+        datamsg[dataidx].data1 = init_getprobeitem(me.msdata->plsettings.probevalue, PL, CAL_KP);
+        datamsg[dataidx].data2 = init_getprobeitem(me.msdata->plsettings.probevalue, PL, CAL_KI);
+        datamsg[dataidx].data3 = init_getprobeitem(me.msdata->plsettings.probevalue, PL, CAL_KD);
+        dataidx++;
 
-            datamsg[dataidx].command = RPY_setpl1;
-            datamsg[dataidx].data1 = aprobeset.pressure;
-            datamsg[dataidx].data2 = aprobeset.imax;
-            datamsg[dataidx].data3 = aprobeset.outlimit;
-            dataidx++;
-            datamsg[dataidx].command = RPY_setpl2;
-            datamsg[dataidx].data1 = aprobeset.kp;
-            datamsg[dataidx].data2 = aprobeset.ki;
-            datamsg[dataidx].data3 = aprobeset.kd;
-            dataidx++;
-        }
-        init_setprobe(aprobevalue, PR, aprobeset);
-        rpyqueue(dataidx);
+        datamsg[dataidx].command = RPY_setpr1;
+        datamsg[dataidx].data1 = init_getprobeitem(me.msdata->prsettings.probevalue, PR, CAL_PRESSURE);
+        datamsg[dataidx].data2 = init_getprobeitem(me.msdata->prsettings.probevalue, PR, CAL_ILIMIT);
+        datamsg[dataidx].data3 = init_getprobeitem(me.msdata->prsettings.probevalue, PR, CAL_OLIMIT);
+        dataidx++;
+        datamsg[dataidx].command = RPY_setpr2;
+        datamsg[dataidx].data1 = init_getprobeitem(me.msdata->prsettings.probevalue, PR, CAL_KP);
+        datamsg[dataidx].data2 = init_getprobeitem(me.msdata->prsettings.probevalue, PR, CAL_KI);
+        datamsg[dataidx].data3 = init_getprobeitem(me.msdata->prsettings.probevalue, PR, CAL_KD);
+        dataidx++;
     }
+    rpyqueue(dataidx);
+    status.RESENDMODE = true;
 }
 
-/*
- * 
- */
-uint16_t calvalue(CALITEM i, PRESSET p, PRESSET* data){
-    
-    switch(i){
-        case CAL_PRESSURE:
-            data->pressure = p.pressure;
-            return p.pressure;
-        case CAL_KP:
-            data->kp = p.kp;
-            return p.kp;
-        case CAL_KI:
-            data->ki = p.ki;
-            return p.ki;
-        case CAL_KD:
-            data->kd = p.kd;
-            return p.kd;
-        case CAL_ILIMIT:
-            data->imax = p.imax;
-            return p.imax;
-        case CAL_OLIMIT:
-            data->outlimit = p.outlimit;
-            return p.outlimit;
-        default:
-            return 0;
-    }    
-}
+
 /*
  * called every 100 us.
  */
@@ -384,13 +353,13 @@ void updateEncoder(void){
                     encinc = 1;
                     break;
                 case 2:
-                    encinc = 4;
+                    encinc = 5;
                     break;
                 case 5:
-                    encinc = 10;
+                    encinc = 20;
                     break;
                 case 10:
-                    encinc = 50;
+                    encinc = 100;
                     break;
                 default:
                     break;
@@ -499,72 +468,7 @@ void testmemdisplay(uint16_t addr, uint8_t data){
     
 }
 
-bool testmem(uint16_t addr, uint8_t* data){
-    static int mode = 0;
-    static uint16_t oldaddr = 0xFFFF;
-    
-    if(addr == oldaddr)
-        return false;
-    
-    switch(mode){
-        
-        case 0:
-            if(mem_getreadstatus() == UNKNOWN){
-                mode = 1;
-            }            
-            break;
-        case 1:
-            mem_readbyteaddr(addr);
-            mode = 2;
-            break;
-        case 2:
-            if(mem_getreadstatus() == READY){
-                *data = mem_readbyte();
-                oldaddr = addr;
-                mode = 0;
-            }
-            return true;
-            break;
-        default:
-            break;
-    }  
-    return false;
-}
 
-int testwritemem(){
-    static uint16_t addr = 100;
-    static uint8_t value = 100;
-    static uint16_t mode = 0;
-    EESTATUS estat;
-    switch(mode){
-        
-        case 0:
-            estat = mem_getwritestatus();
-            if(estat == WPON){
-                mode = 1;
-            } else if(estat == READY){
-                mode = 2;
-            }           
-            break;
-        case 1:
-            mem_writeenable();
-            mode = 0;
-            break;
-        case 2:
-            mem_writebyte(value, addr);
-            mode = 0;
-            if(value == 0){
-                return 1;
-            }
-            addr++;
-            value--;
-            break;            
-        
-        default:
-            break;            
-    }
-    return 0;
-}
 
 
 void testheader(){

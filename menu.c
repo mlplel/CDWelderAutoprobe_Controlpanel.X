@@ -74,7 +74,7 @@ MENUEVENT menu(MENUACTION a) {
         a.msg = ME_MENUINIT;
     } 
     if(cursorf) cursorcount++;
-    if(cursorcount == 400){
+    if(cursorcount == 350){
         cursorflash();
         cursorcount = 0;
     }   
@@ -124,26 +124,39 @@ MENUEVENT menu_top(MENUACTION a) {
     MENUEVENT e;
     e.validf = false;
 
-    if (a.se == SW_CLICKED || a.se == SW_DCLICKED) {
-        menustate.cursorat.visible = false;
-        cursor(menustate.cursorat);
+    if (a.se == SW_CLICKED || a.se == SW_DCLICKED) {        
         e.msg = ME_MENUCHANGED;
         e.validf = true;
         if (menustate.cursorat.cursorline == 1) {
             menustate.id = MID_RUN;
-        } else {
+        } else if(menustate.cursorat.cursorline == 2){
             menustate.id = MID_CAL;
         }
+        else {
+            e.msg = ME_SAVE;
+            e.validf = true;
+            return e;
+        }
+        menustate.cursorat.visible = false;
+        cursor(menustate.cursorat);
         menustate.cursorat.cursorcol = 0;
         menustate.cursorat.cursorline = 0;
         menustate.cursorat.visible = true;
         displayf = true;
     }
     else if(a.enc != 0){
-        if(menustate.cursorat.cursorline == 1){
-            menustate.cursorat.cursorline = 2;
+         if(a.enc >= 1){
+            if(menustate.cursorat.cursorline == 3){
+               menustate.cursorat.cursorline = 1; 
+            } else {
+               menustate.cursorat.cursorline++; 
+            }
         } else {
-            menustate.cursorat.cursorline = 1;
+             if(menustate.cursorat.cursorline == 1){
+               menustate.cursorat.cursorline = 3; 
+            } else {
+               menustate.cursorat.cursorline--; 
+            }
         }
         cursor(menustate.cursorat);
         e.msg = ME_SELCHANGED;
@@ -159,6 +172,15 @@ MENUEVENT menu_top(MENUACTION a) {
 MENUEVENT menu_run(MENUACTION a) {
     MENUEVENT e;
     e.validf = false;
+    
+    // run when menu is 1st displayed.
+    if(a.msg == ME_MENUINIT){        
+        menustate.plsettings.probeactive = false;
+        menustate.prsettings.probeactive = false;
+        e.msg = ME_PROBEVALUE;
+        e.validf = true;
+        return e;
+    } 
 
     if (a.se == SW_CLICKED || a.se == SW_DCLICKED) {
         menustate.cursorat.visible = false;
@@ -492,7 +514,6 @@ MENUEVENT menu_cal(MENUACTION a){
         entryf = false;
         return e;
     }    
-
     if (a.se == SW_CLICKED || a.se == SW_DCLICKED) {
         if (menustate.cursorat.cursorline == 0) {
             menustate.cursorat.visible = false;
@@ -600,21 +621,21 @@ MENUEVENT menu_calpl1(MENUACTION a){
     MENUEVENT e;
     e.validf = false;
     e.msdata = &menustate;
+    uint16_t value;
         
     // run when menu is 1st displayed.
     if(a.msg == ME_MENUINIT) initcnt = 3;
     if(initcnt != 0){
-        menustate.plsettings.probesettings = init_getprobe(menustate.plsettings.probevalue, PL);
         if(initcnt == 3){
-            if(!display_5digit(menustate.plsettings.probesettings.pressure,7,1)) return e;
+            if(!display_5digit(init_getprobeitem(menustate.plsettings.probevalue, PL, CAL_PRESSURE),7,1)) return e;
             initcnt--;
         }
         if(initcnt == 2){
-            if(!display_5digit(menustate.plsettings.probesettings.kp,7,2)) return e;
+            if(!display_5digit(init_getprobeitem(menustate.plsettings.probevalue, PL, CAL_KP),7,2)) return e;
             initcnt--;
         }
         if(initcnt == 1){
-            if(!display_5digit(menustate.plsettings.probesettings.ki,7,3)) return e;
+            if(!display_5digit(init_getprobeitem(menustate.plsettings.probevalue, PL, CAL_KI),7,3)) return e;
             initcnt--;
         }
         menustate.prsettings.probeactive = false;
@@ -663,17 +684,20 @@ MENUEVENT menu_calpl1(MENUACTION a){
             // entry value change here.
             if(menustate.cursorat.cursorline == 1){
                 // set pressure value.
-                menustate.plsettings.probesettings.pressure += a.enc;
-                menustate.cal = CAL_PRESSURE;
-                display_5digit(menustate.plsettings.probesettings.pressure,7,1);
+                value = init_getprobeitem(menustate.plsettings.probevalue, PL, CAL_PRESSURE) + a.enc;
+                init_setprobeitem(menustate.plsettings.probevalue, PL, CAL_PRESSURE, value);
+                display_5digit(value,7,1);
+                menustate.cal = CAL_PRESSURE;                
             } else if(menustate.cursorat.cursorline == 2){
-                menustate.plsettings.probesettings.kp += a.enc;
-                menustate.cal = CAL_KP;
-                display_5digit(menustate.plsettings.probesettings.kp,7,2);
+                value = init_getprobeitem(menustate.plsettings.probevalue, PL, CAL_KP) + a.enc;
+                init_setprobeitem(menustate.plsettings.probevalue, PL, CAL_KP, value);
+                display_5digit(value,7,2);                
+                menustate.cal = CAL_KP;                
             } else if(menustate.cursorat.cursorline == 3){
-                menustate.plsettings.probesettings.ki += a.enc;
-                menustate.cal = CAL_KI;
-                display_5digit(menustate.plsettings.probesettings.ki,7,3);
+                value = init_getprobeitem(menustate.plsettings.probevalue, PL, CAL_KI) + a.enc;
+                init_setprobeitem(menustate.plsettings.probevalue, PL, CAL_KI, value);
+                display_5digit(value,7,3);                
+                menustate.cal = CAL_KI;                
             }
             e.msg = ME_CALVALUE;
             e.validf = true;
@@ -728,20 +752,21 @@ MENUEVENT menu_calpl2(MENUACTION a){
     MENUEVENT e;
     e.validf = false;
     e.msdata = &menustate;
+    uint16_t value;
         
     // run when menu is 1st displayed.
     if(a.msg == ME_MENUINIT) initcnt = 3;
     if(initcnt != 0){
         if(initcnt == 3){
-            if(!display_5digit(menustate.plsettings.probesettings.imax,7,1)) return e;
+            if(!display_5digit(init_getprobeitem(menustate.plsettings.probevalue, PL, CAL_ILIMIT),7,1)) return e;
             initcnt--;
         }
         if(initcnt == 2){
-            if(!display_5digit(menustate.plsettings.probesettings.outlimit,7,2)) return e;
+            if(!display_5digit(init_getprobeitem(menustate.plsettings.probevalue, PL, CAL_OLIMIT),7,2)) return e;
             initcnt--;
         }
         if(initcnt == 1){
-            if(!display_5digit(menustate.plsettings.probesettings.kd,7,3)) return e;
+            if(!display_5digit(init_getprobeitem(menustate.plsettings.probevalue, PL, CAL_KD),7,3)) return e;
             initcnt--;
         }
         menustate.prsettings.probeactive = false;
@@ -774,18 +799,21 @@ MENUEVENT menu_calpl2(MENUACTION a){
     } else if (a.enc != 0) {
         if (entryf) {
             // entry value change here.
-            if(menustate.cursorat.cursorline == 1){                
-                menustate.plsettings.probesettings.imax += a.enc;
-                menustate.cal = CAL_ILIMIT;
-                display_5digit(menustate.plsettings.probesettings.imax,7,1);
+            if(menustate.cursorat.cursorline == 1){
+                value = init_getprobeitem(menustate.plsettings.probevalue, PL, CAL_ILIMIT) + a.enc;
+                init_setprobeitem(menustate.plsettings.probevalue, PL, CAL_ILIMIT, value);
+                display_5digit(value,7,1);                
+                menustate.cal = CAL_ILIMIT;                
             } else if(menustate.cursorat.cursorline == 2){
-                menustate.plsettings.probesettings.outlimit += a.enc;
-                menustate.cal = CAL_OLIMIT;
-                display_5digit(menustate.plsettings.probesettings.outlimit,7,2);
+                value = init_getprobeitem(menustate.plsettings.probevalue, PL, CAL_OLIMIT) + a.enc;
+                init_setprobeitem(menustate.plsettings.probevalue, PL, CAL_OLIMIT, value);
+                display_5digit(value,7,2);                
+                menustate.cal = CAL_OLIMIT;                
             } else if(menustate.cursorat.cursorline == 3){
-                menustate.plsettings.probesettings.kd += a.enc;
-                menustate.cal = CAL_KD;
-                display_5digit(menustate.plsettings.probesettings.kd,7,3);
+                value = init_getprobeitem(menustate.plsettings.probevalue, PL, CAL_KD) + a.enc;
+                init_setprobeitem(menustate.plsettings.probevalue, PL, CAL_KD, value);
+                display_5digit(value,7,3);               
+                menustate.cal = CAL_KD;               
             }
             e.msg = ME_CALVALUE;
             e.validf = true;
@@ -825,21 +853,21 @@ MENUEVENT menu_calpr1(MENUACTION a){
     MENUEVENT e;
     e.validf = false;
     e.msdata = &menustate;
+    uint16_t value;
         
     // run when menu is 1st displayed.
     if(a.msg == ME_MENUINIT) initcnt = 3;
     if(initcnt != 0){
-        menustate.prsettings.probesettings = init_getprobe(menustate.prsettings.probevalue, PR);
         if(initcnt == 3){
-            if(!display_5digit(menustate.prsettings.probesettings.pressure,7,1)) return e;
+            if(!display_5digit(init_getprobeitem(menustate.prsettings.probevalue, PR, CAL_PRESSURE),7,1)) return e;
             initcnt--;
         }
         if(initcnt == 2){
-            if(!display_5digit(menustate.prsettings.probesettings.kp,7,2)) return e;
+            if(!display_5digit(init_getprobeitem(menustate.prsettings.probevalue, PR, CAL_KP),7,2)) return e;
             initcnt--;
         }
         if(initcnt == 1){
-            if(!display_5digit(menustate.prsettings.probesettings.ki,7,3)) return e;
+            if(!display_5digit(init_getprobeitem(menustate.prsettings.probevalue, PR, CAL_KI),7,3)) return e;
             initcnt--;
         }
         menustate.prsettings.probeactive = true;
@@ -869,7 +897,7 @@ MENUEVENT menu_calpr1(MENUACTION a){
                 cursor(menustate.cursorat);
                 e.msg = ME_MENUCHANGED;
                 e.validf = true;
-                menustate.id = MID_CALPL2;
+                menustate.id = MID_CALPR2;
                 menustate.cursorat.cursorline = 0;
                 menustate.cursorat.cursorcol = 0;
                 menustate.cursorat.visible = true;
@@ -888,17 +916,20 @@ MENUEVENT menu_calpr1(MENUACTION a){
             // entry value change here.
             if(menustate.cursorat.cursorline == 1){
                 // set pressure value.
-                menustate.prsettings.probesettings.pressure += a.enc;
-                menustate.cal = CAL_PRESSURE;
-                display_5digit(menustate.prsettings.probesettings.pressure,7,1);
+                value = init_getprobeitem(menustate.prsettings.probevalue, PR, CAL_PRESSURE) + a.enc;
+                init_setprobeitem(menustate.prsettings.probevalue, PR, CAL_PRESSURE, value);
+                display_5digit(value,7,1);                
+                menustate.cal = CAL_PRESSURE;                
             } else if(menustate.cursorat.cursorline == 2){
-                menustate.prsettings.probesettings.kp += a.enc;
-                menustate.cal = CAL_KP;
-                display_5digit(menustate.prsettings.probesettings.kp,7,2);
+                value = init_getprobeitem(menustate.prsettings.probevalue, PR, CAL_KP) + a.enc;
+                init_setprobeitem(menustate.prsettings.probevalue, PR, CAL_KP, value);
+                display_5digit(value,7,2);                
+                menustate.cal = CAL_KP;                
             } else if(menustate.cursorat.cursorline == 3){
-                menustate.prsettings.probesettings.ki += a.enc;
-                menustate.cal = CAL_KI;
-                display_5digit(menustate.prsettings.probesettings.ki,7,3);
+                value = init_getprobeitem(menustate.prsettings.probevalue, PR, CAL_KI) + a.enc;
+                init_setprobeitem(menustate.prsettings.probevalue, PR, CAL_KI, value);
+                display_5digit(value,7,3);                
+                menustate.cal = CAL_KI;                
             }
             e.msg = ME_CALVALUE;
             e.validf = true;
@@ -953,20 +984,21 @@ MENUEVENT menu_calpr2(MENUACTION a){
     MENUEVENT e;
     e.validf = false;
     e.msdata = &menustate;
+    uint16_t value;
         
     // run when menu is 1st displayed.
     if(a.msg == ME_MENUINIT) initcnt = 3;
     if(initcnt != 0){
         if(initcnt == 3){
-            if(!display_5digit(menustate.prsettings.probesettings.imax,7,1)) return e;
+            if(!display_5digit(init_getprobeitem(menustate.prsettings.probevalue, PR, CAL_ILIMIT),7,1)) return e;
             initcnt--;
         }
         if(initcnt == 2){
-            if(!display_5digit(menustate.prsettings.probesettings.outlimit,7,2)) return e;
+            if(!display_5digit(init_getprobeitem(menustate.prsettings.probevalue, PR, CAL_OLIMIT),7,2)) return e;
             initcnt--;
         }
         if(initcnt == 1){
-            if(!display_5digit(menustate.prsettings.probesettings.kd,7,3)) return e;
+            if(!display_5digit(init_getprobeitem(menustate.prsettings.probevalue, PR, CAL_KD),7,3)) return e;
             initcnt--;
         }
         menustate.prsettings.probeactive = true;
@@ -999,18 +1031,21 @@ MENUEVENT menu_calpr2(MENUACTION a){
     } else if (a.enc != 0) {
         if (entryf) {
             // entry value change here.
-            if(menustate.cursorat.cursorline == 1){                
-                menustate.prsettings.probesettings.imax += a.enc;
-                menustate.cal = CAL_ILIMIT;
-                display_5digit(menustate.prsettings.probesettings.imax,7,1);
+            if(menustate.cursorat.cursorline == 1){
+                value = init_getprobeitem(menustate.prsettings.probevalue, PR, CAL_ILIMIT) + a.enc;
+                init_setprobeitem(menustate.prsettings.probevalue, PR, CAL_ILIMIT, value);
+                display_5digit(value,7,1);                
+                menustate.cal = CAL_ILIMIT;                
             } else if(menustate.cursorat.cursorline == 2){
-                menustate.prsettings.probesettings.outlimit += a.enc;
-                menustate.cal = CAL_OLIMIT;
-                display_5digit(menustate.prsettings.probesettings.outlimit,7,2);
+                value = init_getprobeitem(menustate.prsettings.probevalue, PR, CAL_OLIMIT) + a.enc;
+                init_setprobeitem(menustate.prsettings.probevalue, PR, CAL_OLIMIT, value);
+                display_5digit(value,7,2);                
+                menustate.cal = CAL_OLIMIT;                
             } else if(menustate.cursorat.cursorline == 3){
-                menustate.prsettings.probesettings.kd += a.enc;
-                menustate.cal = CAL_KD;
-                display_5digit(menustate.prsettings.probesettings.kd,7,3);
+                value = init_getprobeitem(menustate.prsettings.probevalue, PR, CAL_KD) + a.enc;
+                init_setprobeitem(menustate.prsettings.probevalue, PR, CAL_KD, value);
+                display_5digit(value,7,3);                
+                menustate.cal = CAL_KD;                
             }
             e.msg = ME_CALVALUE;
             e.validf = true;
@@ -1040,7 +1075,8 @@ MENUEVENT menu_calpr2(MENUACTION a){
 
 
 const MENUDATA menudata_top = {
-    MID_TOP,6,{{2,1,30},{3,1,33},{4,1,26},{2,2,15},{3,2,13},{4,2,24}}
+    MID_TOP,10,{{2,1,30},{3,1,33},{4,1,26},{2,2,15},{3,2,13},{4,2,24},{2,3,31},
+    {3,3,13},{4,3,34},{5,3,17}}
 };
 
 const MENUDATA menudata_run = {

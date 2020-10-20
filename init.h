@@ -94,6 +94,41 @@ void init_setprobe(uint16_t i, PROBENUMBER p, PRESSET ps);
 
   @Example
 */
+ void init_setprobeitem(uint16_t pv, PROBENUMBER p, CALITEM item, uint16_t data);
+ 
+ 
+ 
+ 
+/**
+  @Summary
+ 
+  @Description
+
+  @Preconditions
+
+  @Returns
+
+  @Param
+
+  @Example
+*/
+  uint16_t init_getprobeitem(uint16_t pv, PROBENUMBER p, CALITEM item);
+  
+  
+/**
+  @Summary
+ 
+  @Description
+
+  @Preconditions
+
+  @Returns
+
+  @Param
+
+  @Example
+*/  
+bool init_writesettings(); 
 
 
 #ifdef	__cplusplus
