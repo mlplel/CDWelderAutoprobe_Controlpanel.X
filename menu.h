@@ -13,8 +13,6 @@
 #include <stdbool.h>
 #include <xc.h>
 
-
-
 #ifdef	__cplusplus
 extern "C" {
 #endif
@@ -87,8 +85,7 @@ extern "C" {
         MENUMSG msg;
         MENUSTATE* msdata;
         bool validf;
-    }MENUEVENT;
-    
+    }MENUEVENT;    
     
     
 /**
@@ -109,15 +106,15 @@ bool menu_init(MENUSTATE m) ;
     
 /**
   @Summary
- 
+ main entry point to menu.
   @Description
-
+ called with a MENUACTION for process by the menu.
   @Preconditions
 
   @Returns
-
+ MENUEVENT 
   @Param
-
+ MENUACTION
   @Example
 */      
 MENUEVENT menu(MENUACTION a);

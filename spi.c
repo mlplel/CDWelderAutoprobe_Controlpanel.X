@@ -27,12 +27,9 @@ static EESTATUS writestatus = UNKNOWN;
 static EESTATUS readstatus = UNKNOWN;
 static EESTATE eerxstate = OFF;
 static EESTATE eetxstate = OFF;
-//static uint16_t blockcnt = 0;
+
 static uint16_t memaddr = 0;
 static uint8_t  memdata = 0;
-//static uint8_t* memdatap = &memdata;
-
-//static uint16_t dummyread;
 static uint8_t tempread;
 
 static int16_t txdata[6];
@@ -55,7 +52,7 @@ void spi_IOSetup(void){
     RPOR7bits.RP14R = 0x000A;   //RB14->SPI2:SDO  MISO
     RPINR22bits.SCK2R = 0x000D; //RB13->SPI2:SCK SCK
     RPINR22bits.SDI2R = 0x000F; //RB15->SPI2:SDI  MOSI
-    RPINR23bits.SS2R = 0x0C;    //RB12->SPI2:SS    SS
+   // RPINR23bits.SS2R = 0x0C;    //RB12->SPI2:SS    SS
 
     __builtin_write_OSCCONL(OSCCON | 0x40); // lock PPS
    

@@ -38,7 +38,6 @@ static PRESSET probl[15];
 static PRESSET probr[15];
 
 
-
 /*
  * 
  */
@@ -47,27 +46,8 @@ void init_start(void){
     i2c_Init();    
     spi_IOSetup();
     spi1_Init();
-    spi2_Init();
-    
-    // testing
-    /*
-    int i;
-    for(i = 0;i<15;i++){
-        probl[i].pressure = 2400 + 600 * i;
-        probl[i].kp = 110;
-        probl[i].ki = 20;
-        probl[i].kd = 0;
-        probl[i].imax = 1000;
-        probl[i].outlimit = 800;
-        
-        probr[i].pressure = 2400 + 600 * i;
-        probr[i].kp = 110;
-        probr[i].ki = 20;
-        probr[i].kd = 0;
-        probr[i].imax = 1000;
-        probr[i].outlimit = 800;        
-    }
-     */
+    spi2_Init();  
+
 }
 
 /*
@@ -355,9 +335,6 @@ void init_start(void){
              break;
      }
  }
- 
- 
- 
  
  
  /*

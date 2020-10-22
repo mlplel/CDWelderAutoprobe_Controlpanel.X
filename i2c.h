@@ -13,7 +13,6 @@ extern "C" {
 #endif
 
 #include "mcc_generated_files/mcc.h"
-#define FCY     (_XTAL_FREQ/2)
 
 #include <stddef.h>
 #include  "xc.h"
@@ -33,23 +32,73 @@ extern "C" {
 
 
 
+/**
+  @Summary
+ 
+  @Description
 
-    void i2c_Init(void);
+  @Preconditions
 
-    void i2c_Stop(void);
+  @Returns
 
-    I2C_STATUS_MSG i2c_Write(uint8_t *data, uint8_t length);
-    I2C_STATUS_MSG i2c_Ready(void);
+  @Param
+
+  @Example
+*/
+void i2c_Init(void);
 
 
-    void sh1106_Init(void);
-    void sh1106_Clear(void);
+/**
+  @Summary
+ 
+  @Description
 
-    void sh1106_Char(uint8_t col, uint8_t line, int chr);
+  @Preconditions
+
+  @Returns
+
+  @Param
+
+  @Example
+*/
+void i2c_Stop(void);
+
     
-    void display_int(int16_t val, uint8_t line);
-    
-    void display_header(const uint8_t* s1, const uint8_t* s2, const uint8_t* s3);
+/**
+  @Summary
+ 
+  @Description
+
+  @Preconditions
+
+  @Returns
+
+  @Param
+
+  @Example
+*/    
+I2C_STATUS_MSG i2c_Write(uint8_t *data, uint8_t length);
+
+
+
+
+/**
+  @Summary
+ 
+  @Description
+
+  @Preconditions
+
+  @Returns
+
+  @Param
+
+  @Example
+*/
+I2C_STATUS_MSG i2c_Ready(void);
+
+
+   
 
 
 

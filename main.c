@@ -71,10 +71,6 @@ int main(void)
    
     init_start();
     
-    //powerUp();    
-    //LED4_SetLow();
-    
-    
     // init loop
     while (initf == false) {
         if (IFS0bits.T1IF) {

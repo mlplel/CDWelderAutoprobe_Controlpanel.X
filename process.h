@@ -73,19 +73,44 @@ extern "C" {
         CAL_NONE = 7
     } CALITEM;
     
-    void run100us(void);
-    void run1ms(void);
-    void updateSwitch(void);
-    SWEVENT getSwitchEvent(void);
-    SWEVENT peekswitchevent(void);
-    void clearswitchevent(void);
     
-    void calmode_init(void);
-    
-    void updateEncoder(void);
-    bool processMsg(void);
-    void displayupdate(void);
-    void testheader(void);
+/**
+  @Summary
+ 
+  @Description
+
+  @Preconditions
+
+  @Returns
+
+  @Param
+
+  @Example
+*/    
+void run100us(void);
+
+
+/**
+  @Summary
+ 
+  @Description
+
+  @Preconditions
+
+  @Returns
+
+  @Param
+
+  @Example
+*/
+void run1ms(void);
+
+
+
+
+  
+
+ 
     
 /**
   @Summary

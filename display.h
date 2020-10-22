@@ -31,14 +31,13 @@ extern "C" {
   @Summary
  
   @Description
-
+  call to initialize display memory.
   @Preconditions
 
   @Returns
 
   @Param
 
-  @Example
 */    
 void dispmem_init(void);    
     
@@ -46,11 +45,11 @@ void dispmem_init(void);
   @Summary
  
   @Description
-
+ returns a pointer to char data Null if no memory available.
   @Preconditions
 
   @Returns
-
+ uint8_t* to 142 bytes max size.
   @Param
 
   @Example
@@ -62,13 +61,13 @@ uint8_t* dispmem_alloc(void);
   @Summary
  
   @Description
-
+  frees the item allocated by dispmem_alloc.
   @Preconditions
 
   @Returns
 
   @Param
-
+  uint8_t* that was returned from dispmem_alloc. 
   @Example
 */   
 void dispmem_free(uint8_t* p);    

@@ -10,7 +10,6 @@
 #include "display.h"
 #include "i2c.h"
 #include "menu.h"
-//#include "maincharset.h"
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -68,9 +67,6 @@ const uint8_t maincharset[];
              return;
          }
      }
-     
-     
-     
  }
  
  /*
@@ -86,7 +82,6 @@ const uint8_t maincharset[];
  */
 void sh1106_on(void) {
     uint8_t *pdata;
-    //if ((pdata = (uint8_t *) malloc(2)) == NULL) {
     if((pdata = dispmem_alloc()) == NULL){
         // fatal error need to reset
         // need error handler here
@@ -103,7 +98,6 @@ void sh1106_on(void) {
 void sh1106_setup(void){
     while(i2c_Ready() != I2C_STATUS_IDLE);
     uint8_t *pdata;
-    //if((pdata = (uint8_t *)malloc(6)) == NULL){
      if((pdata = dispmem_alloc()) == NULL){   
         // fatal error need to reset
         // need error handler here
@@ -126,7 +120,6 @@ void sh1106_setup(void){
     uint8_t *pdata;
     uint8_t page = 0;    
     while (page < 8) {
-        //if ((pdata = (uint8_t *) malloc(140)) == NULL) {
         if((pdata = dispmem_alloc()) == NULL){
             // fatal error need to reset
             // need error handler here
@@ -156,7 +149,6 @@ void sh1106_setup(void){
  */
 bool sh1106_clearpage(uint8_t page) {
     uint8_t *pdata;
-    //if ((pdata = (uint8_t *) malloc(140)) == NULL) {
     if((pdata = dispmem_alloc()) == NULL){
         // fatal error need to reset
         // need error handler here
@@ -176,7 +168,6 @@ bool sh1106_clearpage(uint8_t page) {
         i++;
     }
     if (i2c_Write(pdata, i) == I2C_STATUS_FULL) {
-        //free(pdata);
         dispmem_free(pdata);
         return false;
     }
@@ -189,7 +180,6 @@ bool sh1106_clearpage(uint8_t page) {
   */
  void sh1106_clearline(uint8_t line) {
     uint8_t *pdata;
-    //if ((pdata = (uint8_t *) malloc(140)) == NULL) {
     if((pdata = dispmem_alloc()) == NULL){
         // fatal error need to reset
         // need error handler here
@@ -210,9 +200,8 @@ bool sh1106_clearpage(uint8_t page) {
         i++;
     }
     if (i2c_Write(pdata, i) == I2C_STATUS_FULL) {
-        free(pdata);
+        dispmem_free(pdata);
     }
-      //if ((pdata = (uint8_t *) malloc(140)) == NULL) {
     if((pdata = dispmem_alloc()) == NULL){
         // fatal error need to reset
         // need error handler here
@@ -232,7 +221,6 @@ bool sh1106_clearpage(uint8_t page) {
         i++;
     }
     if (i2c_Write(pdata, i) == I2C_STATUS_FULL) {
-        //free(pdata);
         dispmem_free(pdata);
     }
  }
@@ -242,7 +230,6 @@ bool sh1106_clearpage(uint8_t page) {
   */
  bool sh1106_charat(uint8_t col, uint8_t line, int chr){
        uint8_t *pdata;
-    //if ((pdata = (uint8_t *) malloc(140)) == NULL) {
     if((pdata = dispmem_alloc()) == NULL){   
         // fatal error need to reset
         // need error handler here
@@ -302,7 +289,6 @@ bool sh1106_clearpage(uint8_t page) {
     charindx++;    
 
     if (i2c_Write(pdata, i) == I2C_STATUS_FULL) {
-        //free(pdata);
         dispmem_free(pdata);
         return false;
     }

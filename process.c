@@ -17,7 +17,6 @@
 #define ENCMINVAL   1
 #define ENCMAXVAL   15
 
-
 #include "process.h"
 #include "mcc_generated_files/pin_manager.h"
 #include "stdbool.h"
@@ -30,33 +29,30 @@
 #include "init.h"
 
 /*
- *   function only called from this file.
+ *   file scope functions.
  */
 bool processswitch(void);
-bool config_motor(void);
 bool rpyqueue(uint16_t rpycount);
 void process_probemsg(MENUEVENT me);
 void process_calmsg(MENUEVENT me);
+void updateSwitch(void);
+SWEVENT getSwitchEvent(void);
+SWEVENT peekswitchevent(void);
+void clearswitchevent(void);
+void updateEncoder(void);
+bool processMsg(void);
 
 
 static PROC_STAT status = {false,false,false,false,false,false};
-
-bool testmem(uint16_t addr, uint8_t* data);
-void testmemdisplay(uint16_t addr, uint8_t data);
-int testwritemem(void);
-
 static bool savesettingsf = false;
 static MAINMSG lastmsg = {CMD_none, 0x00, 0x00, 0x00, false};
 static MAINMSG lastrpy = {RPY_poweron, 0x00, 0x00, 0x00, false};
 MAINMSG statusmsg = {RPY_status, 0x00, 0x00, 0x00, false};
 MAINMSG datamsg[8];
-
-
 static SWSTATE swstate = SW_UP;
 static SWEVENT swevent = SW_NOEVENT;
 static int16_t encvalue = 1;
 static int16_t encinc = 0;
-
 
 /*
  *  main exacution loop run every 1 ms
@@ -430,62 +426,4 @@ bool processMsg(){
     put_msg(lastrpy);
     return true;
 }
-
-/*
- * 
- */
-bool processswitch(){
-    
-  return false;  
-}
-void displayupdate() {
-    static uint16_t count = 100;
-    if (count == 0) {
-        count = 100;
-        if (lastmsg.command == CMD_status) {
-            
-            display_int(lastmsg.data1, 1);
-            display_int(lastmsg.data2, 2);
-            //display_int(encvalue, 4);    
-
-            if ((lastmsg.data3 & 0x0040) == 0) {
-                LED1_SetLow();
-            } else {
-                LED1_SetHigh();
-            }
-
-            if ((lastmsg.data3 & 0x0020) == 0) {
-                LED2_SetLow();
-            } else {
-                LED2_SetHigh();
-            }
-
-            if ((lastmsg.data3 & 0x0010) == 0) {
-                LED3_SetLow();
-            } else {
-                LED3_SetHigh();
-            }
-        }
-    }
-    count--;
-}
-
-void testmemdisplay(uint16_t addr, uint8_t data){
-    
-    display_int(addr, 1);
-    display_int(data, 3);
-    
-}
-
-
-
-
-void testheader(){
-
-    if (getSwitchEvent() == SW_LCLICKED) {
-        display_header(sym_P1set, sym_blank, sym_blank);
-    }
-}
-
-
 

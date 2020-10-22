@@ -139,7 +139,6 @@ void i2c_Stop(void){
     I2C1CONLbits.PEN = 1;
     i2cstate = I2C_IDLE;
     if(pbuffer != NULL){
-        //free(pbuffer);
         dispmem_free(pbuffer);
         pbuffer = NULL;
     }
@@ -178,63 +177,4 @@ I2C_STATUS_MSG i2c_Ready(void){
         return I2C_STATUS_IDLE;
     else return I2C_STATUS_OK;
 }
-
-
-
- 
- void display_header(const uint8_t* s1, const uint8_t* s2, const uint8_t* s3){
-     int bufcnt = s1[0] + s2[0] + s3[0];
-     bufcnt = (bufcnt * 2) + 8;
-    uint8_t *pdata; 
-    if((pdata = (uint8_t *)malloc(bufcnt)) == NULL){
-        // error just return atm
-        return;
-    }  
-    
-    int i = 0;
-
-    *(pdata + i) = 0x80;
-    i++;
-    *(pdata + i) = 0xB2; //select page 0
-    i++;
-    *(pdata + i) = 0x80;
-    i++;
-    *(pdata + i) = 0x04;
-    i++;
-    *(pdata + i) = 0x80;
-    i++;
-    *(pdata + i) = 0x10;
-    i++;
-    
-    int j;
-    for (j = 1; j <= s1[0]; j++) {
-        *(pdata + i) = 0xC0;
-        i++;
-        *(pdata + i) = s1[j];
-        i++;
-    }
-    
-    for (j = 1; j <= s2[0]; j++) {
-        *(pdata + i) = 0xC0;
-        i++;
-        *(pdata + i) = s2[j];
-        i++;
-    }
-    
-    
-     for (j = 1; j <= s3[0]; j++) {
-        *(pdata + i) = 0xC0;
-        i++;
-        *(pdata + i) = s3[j];
-        i++;
-    }
-    
-    *(pdata + i) = 0x40;
-    i++;
-    *(pdata + i) = 0x00;
-    i++;
-    
-    i2c_Write(pdata, i);
-     
- }
 
