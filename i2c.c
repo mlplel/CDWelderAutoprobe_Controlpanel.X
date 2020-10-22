@@ -22,6 +22,7 @@
 #include "stdlib.h"
 #include "stdbool.h"
 #include "libpic30.h"
+#include "display.h"
 
 typedef enum {
     I2C_IDLE,
@@ -138,7 +139,8 @@ void i2c_Stop(void){
     I2C1CONLbits.PEN = 1;
     i2cstate = I2C_IDLE;
     if(pbuffer != NULL){
-        free(pbuffer);
+        //free(pbuffer);
+        dispmem_free(pbuffer);
         pbuffer = NULL;
     }
    // __delay_us(2);
