@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+enum DISPLAYITEM_SIZE { DISPLAYITEM_SIZE = 68 };
 const uint8_t maincharset[];
  const uint8_t colpos[] = {
      0x04, 0x0E, 0x18, 0x22, 0x2C, 0x36, 0x40, 0x4A, 0x54, 0x5E, 0x68, 0x72
@@ -23,6 +24,54 @@ const uint8_t maincharset[];
  const uint8_t linepos[] = {
      0x00, 0x02, 0x04, 0x06, 0x00     
  }; 
+ 
+ /*
+  * 
+  */
+ static DISPLAYITEM di[DISPLAYITEM_SIZE];
+ 
+ 
+ /*
+  * 
+  */
+ void dispmem_init(){
+     int i;
+     for(i = 0;i<DISPLAYITEM_SIZE;i++){
+         di[i].active = 0;
+         di[i].priority = 0;
+     }  
+ }
+ /*
+  * 
+  */
+ uint8_t* dispmem_alloc(){
+     int i;
+     for(i=0;i<DISPLAYITEM_SIZE;i++){
+         if(di[i].active == 0){
+             // slot is open use it
+             di[i].active = 1;
+             return &(di[i].data[0]);
+         }
+     }   
+     return NULL;
+ }
+ 
+ /*
+  * 
+  */
+ void dispmem_free(uint8_t* p){
+     int i;
+     for(i=0;i<DISPLAYITEM_SIZE;i++){
+         if(p == &(di[i].data[0])){
+             //location found free it.
+             di[i].active = 0;
+             return;
+         }
+     }
+     
+     
+     
+ }
  
  /*
   * 
@@ -185,7 +234,7 @@ bool sh1106_clearpage(uint8_t page) {
   */
  bool sh1106_charat(uint8_t col, uint8_t line, int chr){
        uint8_t *pdata;
-    if ((pdata = (uint8_t *) malloc(54)) == NULL) {
+    if ((pdata = (uint8_t *) malloc(140)) == NULL) {
         // fatal error need to reset
         // need error handler here
         while (1);

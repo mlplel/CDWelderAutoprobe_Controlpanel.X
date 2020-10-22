@@ -60,7 +60,6 @@ void i2c_Init(void){
     I2C1CONL = 0x8000;   // enable i2c 7bit addr
     I2C1CONH = 0x0000;
     I2C1STAT = 0x00; 
-
     // clear interrupt flag
     IFS1bits.MI2C1IF = 0;
     // enable i2c interrupt

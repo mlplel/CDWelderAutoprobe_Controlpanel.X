@@ -16,8 +16,64 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
+    
+    
+    typedef struct {
+        uint16_t active;
+        uint16_t priority;
+        uint8_t data[142];
+    }DISPLAYITEM;
 
   
+    
+    
+/**
+  @Summary
+ 
+  @Description
+
+  @Preconditions
+
+  @Returns
+
+  @Param
+
+  @Example
+*/    
+void dispmem_init(void);    
+    
+/**
+  @Summary
+ 
+  @Description
+
+  @Preconditions
+
+  @Returns
+
+  @Param
+
+  @Example
+*/    
+uint8_t* dispmem_alloc(void);    
+
+
+/**
+  @Summary
+ 
+  @Description
+
+  @Preconditions
+
+  @Returns
+
+  @Param
+
+  @Example
+*/   
+void dispmem_free(uint8_t* p);    
+
+
     
 /**
   @Summary

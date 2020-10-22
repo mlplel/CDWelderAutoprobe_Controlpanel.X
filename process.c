@@ -112,8 +112,11 @@ void run1ms(){
         }
     }
     if(savesettingsf){
-        if(init_writesettings())
+        LED1_SetLow();
+        if(init_writesettings()){
+            LED1_SetHigh();
             savesettingsf = false;
+        }
     }
 }
 
@@ -403,7 +406,13 @@ bool processMsg(){
     lastmsg = msg;
     
     switch(lastmsg.command){
-        
+        case CMD_status:
+            if(status.MOTORRUN == false){
+                status.MOTORINIT = true;
+                status.MOTORPOWER = true;
+                lastrpy.command = RPY_status;
+            }
+            break;
         case CMD_init:
             status.MOTORPOWER = true;
             status.MOTORINIT = true; 

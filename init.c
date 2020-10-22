@@ -43,6 +43,7 @@ static PRESSET probr[15];
  * 
  */
 void init_start(void){
+    dispmem_init();
     i2c_Init();    
     spi_IOSetup();
     spi1_Init();

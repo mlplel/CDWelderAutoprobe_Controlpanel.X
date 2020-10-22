@@ -55,6 +55,7 @@ void spi_IOSetup(void){
     RPOR7bits.RP14R = 0x000A;   //RB14->SPI2:SDO  MISO
     RPINR22bits.SCK2R = 0x000D; //RB13->SPI2:SCK SCK
     RPINR22bits.SDI2R = 0x000F; //RB15->SPI2:SDI  MOSI
+    RPINR23bits.SS2R = 0x0C;    //RB12->SPI2:SS    SS
 
     __builtin_write_OSCCONL(OSCCON | 0x40); // lock PPS
    
@@ -62,7 +63,7 @@ void spi_IOSetup(void){
 
 void spi1_Init(void){
     SPI1BRGL = 0x07;    // 4 MHz spi clock
-    SPI1CON1L = 0x8120;  // spi mode 0,no enhanced buffer   
+    SPI1CON1L = 0x8120;  // spi mode 0,no enhanced buffer      
     SPI1STATLbits.SPIROV = 0;
     
     SPI1IMSKL = 0x0009;  // interrupt on tx empty and rx full.
@@ -82,6 +83,7 @@ void spi1_Init(void){
 void spi2_Init(void){
     
      SPI2CON1L = 0x8501;     // slave mode 0 enhanced buffer 16 bit
+     //SPI2CON1Lbits.SSEN = 1; // enable SS input
      SPI2STATLbits.SPIROV = 0;
      //SPI2IMSKLbits.SRMTEN = 1;
      SPI2IMSKL = 0X0000;    // mask to interrupt on rx buffer = 4
@@ -384,7 +386,8 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _SPI2TXInterrupt ( void ){
 
 void __attribute__ ( ( interrupt, no_auto_psv ) ) _SPI2RXInterrupt ( void ){
     
-    IFS3bits.SPI2RXIF = 0;    
+    IFS3bits.SPI2RXIF = 0;   
+     TP3_Toggle();  
     
     int i = 0;
     // if valid msg to go out move to SPI2BUFL.
@@ -417,6 +420,6 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _SPI2RXInterrupt ( void ){
         }
         else msglogp++;
     }
-    //TP3_Toggle();  
+   
     
 }
