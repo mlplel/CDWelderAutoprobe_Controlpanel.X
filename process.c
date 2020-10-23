@@ -395,6 +395,7 @@ void updateEncoder(void){
 }
 
 bool processMsg(){
+    static uint16_t msgerror = 0;
     // don't want to process message until last cmd sent and rpy received.
     if((is_newmsg() == false) || (is_txbusy() == true)) return false;  
     MAINMSG msg = get_msg();
@@ -421,6 +422,11 @@ bool processMsg(){
             status.MOTORRUN = false;
             break;
         default:
+            msgerror++;
+            if(msgerror == 3){
+                msgerror = 0;
+                commresync();
+            }
             break;
     }
     put_msg(lastrpy);

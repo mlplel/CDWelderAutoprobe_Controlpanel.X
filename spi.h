@@ -61,6 +61,21 @@ extern "C" {
     void spi_IOSetup(void);
     void spi1_Init(void);
     void spi2_Init(void);
+    
+/**
+  @Summary
+ 
+  @Description
+
+  @Preconditions
+
+  @Returns
+
+  @Param
+
+  @Example
+*/    
+void commresync(void);
 
     uint8_t spi1_TxByte(uint8_t data);
 

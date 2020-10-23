@@ -52,7 +52,7 @@ void spi_IOSetup(void){
     RPOR7bits.RP14R = 0x000A;   //RB14->SPI2:SDO  MISO
     RPINR22bits.SCK2R = 0x000D; //RB13->SPI2:SCK SCK
     RPINR22bits.SDI2R = 0x000F; //RB15->SPI2:SDI  MOSI
-   // RPINR23bits.SS2R = 0x0C;    //RB12->SPI2:SS    SS
+    RPINR23bits.SS2R = 0x0C;    //RB12->SPI2:SS    SS
 
     __builtin_write_OSCCONL(OSCCON | 0x40); // lock PPS
    
@@ -80,7 +80,7 @@ void spi1_Init(void){
 void spi2_Init(void){
     
      SPI2CON1L = 0x8501;     // slave mode 0 enhanced buffer 16 bit
-     //SPI2CON1Lbits.SSEN = 1; // enable SS input
+     SPI2CON1Lbits.SSEN = 1; // enable SS input
      SPI2STATLbits.SPIROV = 0;
      //SPI2IMSKLbits.SRMTEN = 1;
      SPI2IMSKL = 0X0000;    // mask to interrupt on rx buffer = 4
@@ -98,6 +98,22 @@ void spi2_Init(void){
      //IEC2bits.SPI2IE = 1;
      //IEC2bits.SPI2TXIE = 1;
      IEC3bits.SPI2RXIE = 1;    
+}
+
+/*
+ * 
+ */
+void commresync(){
+    LED2_Toggle();
+    while(!C_CS_GetValue());
+    SPI2CON1Lbits.SPIEN = 0;
+    Nop();
+    Nop();
+    SPI2CON1Lbits.SPIEN = 1;
+    int i;
+    for(i=0;i<4;i++){
+        SPI2BUFL = txdata[i];
+    }
 }
 
 
@@ -413,7 +429,6 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _SPI2RXInterrupt ( void ){
         msglog[msglogp] = rxdata[i];
         if (msglogp == 79){
             msglogp = 0;
-            TP3_Toggle();
         }
         else msglogp++;
     }
