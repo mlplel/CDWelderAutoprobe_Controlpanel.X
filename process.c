@@ -13,7 +13,27 @@
   @Description
     processes operations.    
 */
+/*
+    Copyright 2022 Michael Jacobs
 
+    Permission is hereby granted, free of charge, to any person obtaining a 
+    copy of this software and associated documentation files (the "Software"), 
+    to deal in the Software without restriction, including without limitation 
+    the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+    and/or sell copies of the Software, and to permit persons to whom the 
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included 
+    in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+    DEALINGS IN THE SOFTWARE.
+*/
 #define ENCMINVAL   1
 #define ENCMAXVAL   15
 
@@ -58,6 +78,7 @@ static int16_t encinc = 0;
  *  main exacution loop run every 1 ms
  */
 void run1ms(){ 
+    //TP2_Toggle();
     updateSwitch();
     if (processMsg() && (lastmsg.command == CMD_status)) {
 
@@ -190,8 +211,10 @@ void updateSwitch(void){
                     }
                 } else if (downtime < 2000) {
                     swevent = SW_LCLICKED;
+                    //LED4_Toggle();
                 } else {
                     swevent = SW_ELCLICKED;
+                   // LED3_Toggle();
                 }
                 swstate = SW_UP;
                 downtime = 0;
@@ -409,6 +432,17 @@ bool processMsg(){
                 status.MOTORPOWER = true;
                 lastrpy.command = RPY_status;
             }
+            if((lastmsg.data3 & 0x0001) != 0){
+                LED4_SetLow();
+            } else {
+                LED4_SetHigh();
+            }
+            if((lastmsg.data3 & 0x0002) != 0){
+                LED3_SetLow();
+            } else {
+                LED3_SetHigh();
+            }
+            //TP2_Toggle();
             break;
         case CMD_init:
             status.MOTORPOWER = true;

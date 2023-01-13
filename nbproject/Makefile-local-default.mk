@@ -14,24 +14,23 @@
 # You can invoke make with the values of the macros:
 # $ makeMP_CC="/opt/microchip/mplabc30/v3.30c/bin/pic30-gcc" ...  
 #
-PATH_TO_IDE_BIN=/home/mjacobs/opt/MPLABX/mplab_platform/platform/../mplab_ide/modules/../../bin/
+PATH_TO_IDE_BIN=/opt/microchip/mplabx/v6.05/mplab_platform/platform/../mplab_ide/modules/../../bin/
 # Adding MPLAB X bin directory to path.
-PATH:=/home/mjacobs/opt/MPLABX/mplab_platform/platform/../mplab_ide/modules/../../bin/:$(PATH)
+PATH:=/opt/microchip/mplabx/v6.05/mplab_platform/platform/../mplab_ide/modules/../../bin/:$(PATH)
 # Path to java used to run MPLAB X when this makefile was created
-MP_JAVA_PATH="/home/mjacobs/opt/MPLABX/sys/java/zulu8.36.0.1-ca-fx-jdk8.0.202-linux_x64/jre/bin/"
+MP_JAVA_PATH="/opt/microchip/mplabx/v6.05/sys/java/zulu8.64.0.19-ca-fx-jre8.0.345-linux_x64/bin/"
 OS_CURRENT="$(shell uname -s)"
-MP_CC="/home/mjacobs/opt/xc16/v1.60/bin/xc16-gcc"
+MP_CC="/home/mjacobs/opt/MPLAB/xc16/v1.70/bin/xc16-gcc"
 # MP_CPPC is not defined
 # MP_BC is not defined
-MP_AS="/home/mjacobs/opt/xc16/v1.60/bin/xc16-as"
-MP_LD="/home/mjacobs/opt/xc16/v1.60/bin/xc16-ld"
-MP_AR="/home/mjacobs/opt/xc16/v1.60/bin/xc16-ar"
-DEP_GEN=${MP_JAVA_PATH}java -jar "/home/mjacobs/opt/MPLABX/mplab_platform/platform/../mplab_ide/modules/../../bin/extractobjectdependencies.jar"
-MP_CC_DIR="/home/mjacobs/opt/xc16/v1.60/bin"
+MP_AS="/home/mjacobs/opt/MPLAB/xc16/v1.70/bin/xc16-as"
+MP_LD="/home/mjacobs/opt/MPLAB/xc16/v1.70/bin/xc16-ld"
+MP_AR="/home/mjacobs/opt/MPLAB/xc16/v1.70/bin/xc16-ar"
+DEP_GEN=${MP_JAVA_PATH}java -jar "/opt/microchip/mplabx/v6.05/mplab_platform/platform/../mplab_ide/modules/../../bin/extractobjectdependencies.jar"
+MP_CC_DIR="/home/mjacobs/opt/MPLAB/xc16/v1.70/bin"
 # MP_CPPC_DIR is not defined
 # MP_BC_DIR is not defined
-MP_AS_DIR="/home/mjacobs/opt/xc16/v1.60/bin"
-MP_LD_DIR="/home/mjacobs/opt/xc16/v1.60/bin"
-MP_AR_DIR="/home/mjacobs/opt/xc16/v1.60/bin"
-# MP_BC_DIR is not defined
+MP_AS_DIR="/home/mjacobs/opt/MPLAB/xc16/v1.70/bin"
+MP_LD_DIR="/home/mjacobs/opt/MPLAB/xc16/v1.70/bin"
+MP_AR_DIR="/home/mjacobs/opt/MPLAB/xc16/v1.70/bin"
 DFP_DIR=/home/mjacobs/.mchp_packs/Microchip/PIC24F-GA-GB_DFP/1.1.74
